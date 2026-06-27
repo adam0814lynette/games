@@ -18,7 +18,11 @@
       --black: #111827;
       --red: #d90429;
       --slot: rgba(255,255,255,.13);
-      --shadow: rgba(0,0,0,.22);
+      --shadow: rgba(0,0,0,.32);
+      --line: rgba(255,255,255,.16);
+      --button: rgba(255,255,255,.13);
+      --button-hover: rgba(255,255,255,.20);
+      --card-line: rgba(17,24,39,.22);
     }
 
     body.dark {
@@ -69,19 +73,20 @@
       width: 100vw;
       max-width: 980px;
       margin: 0 auto;
-      padding: clamp(5px, 1.1vh, 10px);
+      padding: clamp(6px, 1.4vh, 12px);
       display: grid;
       grid-template-rows: auto auto 1fr auto;
-      gap: clamp(4px, .9vh, 8px);
+      gap: clamp(5px, 1.1vh, 10px);
       overflow: hidden;
     }
 
     .topbar, .toolbar {
       background: var(--panel);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 14px;
-      padding: clamp(5px, 1vh, 8px);
-      box-shadow: 0 5px 14px var(--shadow);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: clamp(6px, 1.2vh, 10px);
+      box-shadow: 0 10px 28px rgba(0,0,0,.22);
+      backdrop-filter: blur(10px);
     }
 
     .topbar {
@@ -115,17 +120,19 @@
 
     .icon-btn, .small-btn, .primary-btn {
       border: 0;
-      border-radius: 12px;
+      border-radius: 10px;
       font-weight: 800;
       cursor: pointer;
-      background: rgba(255,255,255,.14);
+      background: var(--button);
       color: var(--text);
+      min-height: 38px;
+      transition: transform 120ms ease, background 120ms ease, opacity 120ms ease, box-shadow 120ms ease;
     }
 
     .icon-btn {
       width: 40px;
       height: 38px;
-      font-size: 1.25rem;
+      font-size: 1.18rem;
     }
 
     .small-btn, .primary-btn {
@@ -138,6 +145,33 @@
       color: #111827;
     }
 
+    .icon-btn:hover, .small-btn:hover, .primary-btn:hover {
+      background: var(--button-hover);
+      transform: translateY(-1px);
+    }
+
+    .primary-btn:hover {
+      box-shadow: 0 0 0 2px rgba(255,255,255,.16) inset;
+    }
+
+    .icon-btn:active, .small-btn:active, .primary-btn:active {
+      transform: translateY(0) scale(.98);
+    }
+
+    button:disabled {
+      opacity: .38;
+      cursor: default;
+      transform: none !important;
+      box-shadow: none;
+    }
+
+    .tool-icon {
+      display: inline-grid;
+      place-items: center;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
     .danger-btn {
       background: var(--danger);
       color: white;
@@ -145,90 +179,98 @@
 
     .toolbar {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 7px;
     }
 
     .game {
       min-height: 0;
       display: grid;
-      grid-template-rows: var(--card-h) 1fr;
+      grid-template-rows: auto 1fr;
       gap: clamp(7px, 1.4vh, 12px);
       overflow: hidden;
-      --card-w: min(
-        calc((100vw - 24px - (6 * clamp(4px, 1.1vw, 8px))) / 7),
-        calc((100svh - 165px) * .70 / 4.35),
-        84px
-      );
-      --card-h: calc(var(--card-w) / .70);
-      --tab-gap: clamp(4px, 1.1vw, 8px);
     }
 
     .upper {
       display: grid;
-      grid-template-columns: repeat(6, var(--card-w));
-      justify-content: center;
-      gap: var(--tab-gap);
-      height: var(--card-h);
+      grid-template-columns: 1fr 1fr .8fr .8fr .8fr .8fr;
+      gap: clamp(5px, 1.3vw, 10px);
       min-height: 0;
     }
 
     body.lefty .upper {
-      grid-template-columns: repeat(6, var(--card-w));
+      grid-template-columns: .8fr .8fr .8fr .8fr 1fr 1fr;
     }
 
     .tableau {
       min-height: 0;
       display: grid;
-      grid-template-columns: repeat(7, var(--card-w));
-      justify-content: center;
-      gap: var(--tab-gap);
+      grid-template-columns: repeat(7, 1fr);
+      gap: clamp(5px, 1.3vw, 10px);
       overflow: hidden;
     }
 
     .pile, .slot {
       position: relative;
-      width: var(--card-w);
       min-width: 0;
       height: 100%;
       border-radius: 10px;
     }
 
     .slot {
-      border: 2px dashed var(--slot);
+      border: 1px solid var(--slot);
       display: grid;
       place-items: center;
       color: rgba(255,255,255,.25);
       font-weight: 900;
       font-size: clamp(.7rem, 2.8vw, .95rem);
-      background: rgba(0,0,0,.08);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.055), rgba(0,0,0,.08)),
+        rgba(0,0,0,.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px rgba(0,0,0,.08);
+      transition: outline 120ms ease, background 120ms ease, transform 120ms ease;
+    }
+
+    .slot-label {
+      opacity: .55;
+      font-size: clamp(.65rem, 2.5vw, .82rem);
+      letter-spacing: 0;
+    }
+
+    .foundation-mark {
+      opacity: .33;
+      font-size: clamp(1.5rem, 6vw, 2.35rem);
+      line-height: 1;
     }
 
     .card {
       position: absolute;
-      width: var(--card-w);
-      height: var(--card-h);
-      border-radius: clamp(6px, 1.8vw, 11px);
-      background: var(--card);
+      width: 100%;
+      aspect-ratio: 0.70 / 1;
+      border-radius: clamp(7px, 1.8vw, 11px);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.78), rgba(255,255,255,0) 34%),
+        var(--card);
       color: var(--black);
-      box-shadow: 0 2px 5px var(--shadow);
-      border: 1px solid rgba(0,0,0,.22);
+      box-shadow: 0 4px 10px rgba(0,0,0,.26), inset 0 0 0 1px rgba(255,255,255,.7);
+      border: 1px solid var(--card-line);
       user-select: none;
       touch-action: none;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      padding: clamp(3px, 1vw, 6px);
+      padding: clamp(2px, .9vw, 5px);
       transform-origin: center;
-      transition: box-shadow 90ms ease, outline 90ms ease;
-      contain: layout paint;
-      will-change: left, top;
+      transition: transform 140ms ease, box-shadow 140ms ease, outline 140ms ease, filter 140ms ease;
     }
 
     .card.face-down {
       background:
-        radial-gradient(circle at center, rgba(255,255,255,.16), transparent 48%),
-        linear-gradient(135deg, var(--card-back), #16233f);
+        radial-gradient(circle at center, rgba(255,255,255,.20), transparent 36%),
+        linear-gradient(135deg, rgba(255,255,255,.12) 25%, transparent 25% 50%, rgba(255,255,255,.12) 50% 75%, transparent 75%),
+        var(--card-back);
+      background-size: auto, 12px 12px, auto;
       border: 1px solid rgba(255,255,255,.22);
+      box-shadow: 0 4px 10px rgba(0,0,0,.30), inset 0 0 0 3px rgba(255,255,255,.12);
     }
 
     .card.face-down * { visibility: hidden; }
@@ -239,18 +281,31 @@
       z-index: 999 !important;
     }
 
-    .card.hint { box-shadow: 0 0 18px var(--accent), 0 2px 6px var(--shadow); }
+    .card.hint { animation: hintPulse .7s infinite alternate; }
+
+    @keyframes hintPulse { to { transform: scale(1.045); } }
+
+    .invalid-drop {
+      animation: invalidShake 190ms ease;
+    }
+
+    @keyframes invalidShake {
+      25% { transform: translateX(-3px); }
+      50% { transform: translateX(3px); }
+      75% { transform: translateX(-2px); }
+    }
 
     .rank {
       font-weight: 900;
       line-height: 1;
-      font-size: clamp(.95rem, 4.2vw, 1.35rem);
+      font-size: clamp(.68rem, 3vw, 1rem);
+      letter-spacing: 0;
     }
 
     .center-suit {
       display: grid;
       place-items: center;
-      font-size: clamp(1.45rem, 7vw, 2.7rem);
+      font-size: clamp(1rem, 5vw, 2rem);
       line-height: 1;
     }
 
@@ -260,20 +315,12 @@
       transform: rotate(180deg);
       font-weight: 900;
       line-height: 1;
-      font-size: clamp(.95rem, 4.2vw, 1.35rem);
+      font-size: clamp(.68rem, 3vw, 1rem);
+      letter-spacing: 0;
     }
 
     .red { color: var(--red); }
     .black { color: var(--black); }
-
-    .rank, .bottom-rank {
-      letter-spacing: -0.04em;
-      text-align: center;
-    }
-
-    .center-suit {
-      text-shadow: 0 1px 0 rgba(0,0,0,.08);
-    }
 
     .dragging {
       opacity: .88;
@@ -308,15 +355,17 @@
       max-height: 92svh;
       overflow: auto;
       background: var(--panel);
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
       padding: 18px;
       box-shadow: 0 20px 70px rgba(0,0,0,.55);
+      backdrop-filter: blur(12px);
     }
 
     .modal h2 {
       margin: 0 0 12px;
-      font-size: 1.55rem;
+      font-size: 1.35rem;
+      letter-spacing: 0;
     }
 
     .menu-list {
@@ -344,7 +393,7 @@
       background: rgba(255,255,255,.14);
       color: var(--text);
       border: 1px solid rgba(255,255,255,.14);
-      border-radius: 11px;
+      border-radius: 9px;
       padding: 9px;
     }
 
@@ -359,7 +408,8 @@
 
     .statbox {
       background: rgba(255,255,255,.10);
-      border-radius: 13px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 10px;
       padding: 10px;
     }
 
@@ -406,22 +456,15 @@
       .footer {
         grid-column: 1 / -1;
       }
-      .game {
-        --card-w: min(
-          calc((100vw - 175px - 70px) / 7),
-          calc((100svh - 70px) * .70 / 3.7),
-          82px
-        );
-      }
       .upper {
-        grid-template-columns: repeat(6, var(--card-w));
+        grid-template-columns: 1fr 1fr repeat(4, .9fr);
       }
     }
 
     @media (max-height: 680px) {
       .footer { display: none; }
-      .topbar, .toolbar { padding: 5px; }
-      .small-btn, .primary-btn { padding: 6px; }
+      .topbar, .toolbar { padding: 6px; }
+      .small-btn, .primary-btn { padding: 7px; }
       .icon-btn { width: 36px; height: 34px; }
     }
   </style>
@@ -438,14 +481,14 @@
         <span id="timer">0:00</span>
         <span>Moves: <b id="moves">0</b></span>
       </div>
-      <button class="icon-btn" id="menuBtn" aria-label="Menu">☰</button>
+      <button class="icon-btn" id="menuBtn" aria-label="Menu" title="Menu">☰</button>
     </section>
 
     <section class="toolbar">
-      <button class="small-btn" id="newBtn">New</button>
-      <button class="small-btn" id="undoBtn">Undo</button>
-      <button class="small-btn" id="hintBtn">Hint</button>
-      <button class="small-btn primary-btn hidden" id="autoBtn">Auto</button>
+      <button class="small-btn" id="newBtn" aria-label="New game" title="New game"><span class="tool-icon">＋</span></button>
+      <button class="small-btn" id="undoBtn" aria-label="Undo move" title="Undo move"><span class="tool-icon">↶</span></button>
+      <button class="small-btn" id="hintBtn" aria-label="Hint" title="Hint"><span class="tool-icon">?</span></button>
+      <button class="small-btn primary-btn hidden" id="autoBtn" aria-label="Auto complete" title="Auto complete"><span class="tool-icon">✓</span></button>
     </section>
 
     <section class="game" id="game">
@@ -453,7 +496,7 @@
       <div class="tableau" id="tableau"></div>
     </section>
 
-    <div class="footer" id="footer">Tap or drag cards. Large-print cards. Double-tap/click a card to send it to foundations when valid.</div>
+    <div class="footer" id="footer">Tap or drag cards. Progress saves automatically.</div>
   </main>
 
   <div class="overlay show" id="menuOverlay">
@@ -483,7 +526,7 @@
         <label for="dealSelect">Deal Type</label>
         <select id="dealSelect">
           <option value="random">Random</option>
-          <option value="winnable">Winnable</option>
+          <option value="winnable">Seeded</option>
         </select>
       </div>
       <div class="setting-row">
@@ -823,10 +866,22 @@
       if (!card) return "";
       const color = COLORS[card.suit];
       return `
-        <div class="rank ${color}">${card.rank}<br>${card.suit}</div>
+        <div class="rank ${color}">${card.rank}${card.suit}</div>
         <div class="center-suit ${color}">${card.suit}</div>
-        <div class="bottom-rank ${color}">${card.rank}<br>${card.suit}</div>
+        <div class="bottom-rank ${color}">${card.rank}${card.suit}</div>
       `;
+    }
+
+    function setSlotMarker(pile, item) {
+      pile.innerHTML = "";
+      if (item === "stock") {
+        pile.innerHTML = `<span class="slot-label">Stock</span>`;
+      } else if (item === "waste") {
+        pile.innerHTML = `<span class="slot-label">Waste</span>`;
+      } else if (item.startsWith("f")) {
+        const suit = SUITS[Number(item.slice(1))];
+        pile.innerHTML = `<span class="foundation-mark ${COLORS[suit]}">${suit}</span>`;
+      }
     }
 
     function makeCard(card, location, index, offset) {
@@ -844,23 +899,11 @@
           e.stopPropagation();
           cardTap(location, index);
         });
-
         div.addEventListener("dblclick", (e) => {
+          e.preventDefault();
           e.stopPropagation();
-          autoMoveToFoundation(location, index);
+          if (!moveToAnyFoundation(location, index)) triggerInvalid(location);
         });
-
-        div.addEventListener("touchend", (e) => {
-          const now = Date.now();
-          const last = Number(div.dataset.lastTap || 0);
-          div.dataset.lastTap = now;
-          if (now - last < 320) {
-            e.preventDefault();
-            e.stopPropagation();
-            autoMoveToFoundation(location, index);
-          }
-        }, { passive: false });
-
         div.addEventListener("pointerdown", (e) => startDrag(e, location, index));
       }
       return div;
@@ -876,7 +919,7 @@
         const pile = document.createElement("div");
         pile.className = "pile slot";
         pile.dataset.pile = item;
-        pile.textContent = item === "stock" ? "Stock" : item === "waste" ? "Waste" : SUITS[Number(item.slice(1))];
+        setSlotMarker(pile, item);
 
         pile.addEventListener("click", () => {
           if (item === "stock") drawStock();
@@ -890,19 +933,20 @@
             pile.innerHTML = "";
             pile.appendChild(makeCard(c, "stock", game.stock.length - 1, 0));
           } else {
-            pile.textContent = game.waste.length ? "↻" : "";
+            pile.innerHTML = game.waste.length ? `<span class="foundation-mark">↻</span>` : "";
           }
         }
 
         if (item === "waste") {
-          // Mobile layout: show only the playable/top waste card so it never overlaps foundations.
           pile.innerHTML = "";
-          const top = game.waste[game.waste.length - 1];
-          if (top) {
-            pile.appendChild(makeCard(top, "waste", game.waste.length - 1, 0));
-          } else {
-            pile.textContent = "Waste";
-          }
+          const visible = game.waste.slice(-3);
+          visible.forEach((card, i) => {
+            const cardEl = makeCard(card, "waste", game.waste.length - visible.length + i, 0);
+            cardEl.style.left = (i * 18) + "%";
+            cardEl.style.width = "82%";
+            pile.appendChild(cardEl);
+          });
+          if (!visible.length) setSlotMarker(pile, item);
         }
 
         if (item.startsWith("f")) {
@@ -928,7 +972,6 @@
         const pile = document.createElement("div");
         pile.className = "pile slot";
         pile.dataset.pile = "tableau" + col;
-        pile.textContent = col + 1;
         pile.addEventListener("click", () => destinationTap("tableau" + col));
 
         game.tableau[col].forEach((card, index) => {
@@ -947,7 +990,11 @@
       el.moves.textContent = game.moves;
       const scoringText = save.settings.scoring === "standard" ? "Standard" : `Vegas $${game.vegasScore}`;
       el.modeText.textContent = `Draw ${save.settings.draw} • ${scoringText}`;
-      el.autoBtn.classList.toggle("hidden", !(save.settings.autoComplete && canAutoComplete()));
+      const moves = legalMoves();
+      el.undoBtn.disabled = !game.history.length;
+      el.hintBtn.disabled = !moves.length;
+      el.autoBtn.classList.toggle("hidden", !save.settings.autoComplete);
+      el.autoBtn.disabled = !canAutoComplete();
       persistCurrent();
     }
 
@@ -1039,17 +1086,23 @@
       return true;
     }
 
-
-    function autoMoveToFoundation(location, index) {
+    function moveToAnyFoundation(location, index) {
       const cards = sourceCards(location, index).filter(Boolean);
       if (cards.length !== 1 || !cards[0].faceUp) return false;
-
       for (let f = 0; f < 4; f++) {
-        if (canMoveToFoundation(cards[0], f)) {
-          return moveCards(location, index, "foundation" + f);
-        }
+        if (canMoveToFoundation(cards[0], f)) return moveCards(location, index, "foundation" + f);
       }
       return false;
+    }
+
+    function triggerInvalid(target) {
+      const pileName = target.startsWith("foundation") ? target.replace("foundation", "f") : target;
+      const node = document.querySelector(`[data-pile="${pileName}"], .card[data-location="${target}"]`);
+      if (!node) return;
+      node.classList.remove("invalid-drop");
+      void node.offsetWidth;
+      node.classList.add("invalid-drop");
+      setTimeout(() => node.classList.remove("invalid-drop"), 220);
     }
 
     function cardTap(location, index) {
@@ -1081,7 +1134,7 @@
 
     function destinationTap(dest) {
       if (!game.selected) return;
-      moveCards(game.selected.location, game.selected.index, dest);
+      if (!moveCards(game.selected.location, game.selected.index, dest)) triggerInvalid(dest);
     }
 
     function renderSelection() {
@@ -1381,7 +1434,16 @@
       drag = null;
       render();
 
-      if (dest && movedEnough) moveCards(d.location, d.index, dest);
+      if (dest && movedEnough && !moveCards(d.location, d.index, dest)) triggerInvalid(dest);
+    }
+
+    function hasActiveGame() {
+      return !game.won && (game.moves > 0 || game.history.length > 0);
+    }
+
+    function requestNewGame() {
+      if (hasActiveGame() && !confirm("Start a new game and replace the current one?")) return;
+      startNewGame();
     }
 
     function resetStats() {
@@ -1394,8 +1456,8 @@
     // Events
     el.menuBtn.addEventListener("click", () => { clearInterval(game.timer); el.menuOverlay.classList.add("show"); });
     el.resumeBtn.addEventListener("click", () => { closeAllOverlays(); startTimer(); });
-    el.newBtn.addEventListener("click", () => startNewGame());
-    el.menuNewBtn.addEventListener("click", () => startNewGame());
+    el.newBtn.addEventListener("click", requestNewGame);
+    el.menuNewBtn.addEventListener("click", requestNewGame);
     el.customBtn.addEventListener("click", showSettings);
     el.settingsBtn.addEventListener("click", showSettings);
     el.statsBtn.addEventListener("click", showStats);
@@ -1408,11 +1470,7 @@
     el.resetStatsBtn.addEventListener("click", resetStats);
     el.winNewBtn.addEventListener("click", () => startNewGame());
     el.winMenuBtn.addEventListener("click", () => { closeAllOverlays(); el.menuOverlay.classList.add("show"); });
-    let resizeTimer = null;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(render, 120);
-    });
+    window.addEventListener("resize", () => render());
 
     load();
 
