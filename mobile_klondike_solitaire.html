@@ -194,14 +194,14 @@
 
     .upper {
       display: grid;
-      grid-template-columns: 1fr 1fr .8fr .8fr .8fr .8fr;
+      grid-template-columns: 1fr 1.3fr .85fr .85fr .85fr .85fr;
       gap: clamp(5px, 1.3vw, 10px);
       min-height: 0;
       align-items: start;
     }
 
     body.lefty .upper {
-      grid-template-columns: .8fr .8fr .8fr .8fr 1fr 1fr;
+      grid-template-columns: .85fr .85fr .85fr .85fr 1.3fr 1fr;
     }
 
     .tableau {
@@ -216,6 +216,10 @@
       width: min(100%, calc(var(--upper-pile-h) * .7));
       height: var(--upper-pile-h);
       justify-self: center;
+    }
+
+    .upper [data-pile="waste"] {
+      width: min(100%, calc(var(--upper-pile-h) * .95));
     }
 
     .pile, .slot {
@@ -325,6 +329,15 @@
       line-height: 1;
       font-size: clamp(.68rem, 3vw, 1rem);
       letter-spacing: 0;
+    }
+
+    [data-location="waste"] .rank,
+    [data-location="waste"] .bottom-rank {
+      font-size: clamp(.78rem, 3.4vw, 1.08rem);
+    }
+
+    [data-location="waste"] .center-suit {
+      font-size: clamp(1.15rem, 5.4vw, 2.1rem);
     }
 
     .red { color: var(--red); }
@@ -466,6 +479,9 @@
       }
       .upper {
         grid-template-columns: 1fr 1fr repeat(4, .9fr);
+      }
+      .upper [data-pile="waste"] {
+        width: min(100%, calc(var(--upper-pile-h) * .7));
       }
     }
 
@@ -950,8 +966,8 @@
           const visible = game.waste.slice(-3);
           visible.forEach((card, i) => {
             const cardEl = makeCard(card, "waste", game.waste.length - visible.length + i, 0);
-            cardEl.style.left = (i * 14) + "%";
-            cardEl.style.width = "72%";
+            cardEl.style.left = (i * 10) + "%";
+            cardEl.style.width = "80%";
             pile.appendChild(cardEl);
           });
           if (!visible.length) setSlotMarker(pile, item);
