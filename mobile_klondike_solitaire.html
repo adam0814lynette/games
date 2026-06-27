@@ -6,11 +6,11 @@
   <title>Mobile Klondike Solitaire</title>
   <style>
     :root {
-      --bg: #0f3d23;
-      --felt: #145c35;
+      --bg: #05251e;
+      --felt: #0b7a55;
       --panel: rgba(8, 20, 15, 0.78);
       --card: #fffdf7;
-      --card-back: #23395d;
+      --card-back: #f97316;
       --text: #f5fff8;
       --muted: #b6d1c0;
       --accent: #ffd166;
@@ -26,31 +26,31 @@
     }
 
     body.dark {
-      --bg: #0f1221;
-      --felt: #181d32;
-      --panel: rgba(17, 21, 38, .86);
+      --bg: #101014;
+      --felt: #2d3326;
+      --panel: rgba(16, 16, 20, .88);
       --card: #f8fafc;
-      --card-back: #29324f;
+      --card-back: #22c55e;
       --text: #f6f8ff;
-      --muted: #adb7d6;
-      --accent: #72f7ff;
+      --muted: #c5cfbd;
+      --accent: #facc15;
       --slot: rgba(255,255,255,.10);
     }
 
     body.blue {
-      --bg: #0c2d57;
-      --felt: #0e4b83;
+      --bg: #071a33;
+      --felt: #155e75;
       --panel: rgba(7, 24, 47, .82);
-      --accent: #a8dadc;
-      --card-back: #102a43;
+      --accent: #67e8f9;
+      --card-back: #facc15;
     }
 
     body.vegas {
-      --bg: #102b1d;
-      --felt: #0f5b34;
-      --panel: rgba(28, 17, 8, .80);
-      --accent: #ffd700;
-      --card-back: #7b1e1e;
+      --bg: #190b2f;
+      --felt: #14532d;
+      --panel: rgba(24, 10, 45, .82);
+      --accent: #fde047;
+      --card-back: #e11d48;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -184,10 +184,11 @@
     }
 
     .game {
+      --upper-pile-h: clamp(74px, 11svh, 112px);
       min-height: 0;
       display: grid;
-      grid-template-rows: auto 1fr;
-      gap: clamp(7px, 1.4vh, 12px);
+      grid-template-rows: var(--upper-pile-h) 1fr;
+      gap: clamp(16px, 2.4vh, 22px);
       overflow: hidden;
     }
 
@@ -196,6 +197,7 @@
       grid-template-columns: 1fr 1fr .8fr .8fr .8fr .8fr;
       gap: clamp(5px, 1.3vw, 10px);
       min-height: 0;
+      align-items: start;
     }
 
     body.lefty .upper {
@@ -208,6 +210,12 @@
       grid-template-columns: repeat(7, 1fr);
       gap: clamp(5px, 1.3vw, 10px);
       overflow: hidden;
+    }
+
+    .upper .pile {
+      width: min(100%, calc(var(--upper-pile-h) * .7));
+      height: var(--upper-pile-h);
+      justify-self: center;
     }
 
     .pile, .slot {
@@ -942,8 +950,8 @@
           const visible = game.waste.slice(-3);
           visible.forEach((card, i) => {
             const cardEl = makeCard(card, "waste", game.waste.length - visible.length + i, 0);
-            cardEl.style.left = (i * 18) + "%";
-            cardEl.style.width = "82%";
+            cardEl.style.left = (i * 14) + "%";
+            cardEl.style.width = "72%";
             pile.appendChild(cardEl);
           });
           if (!visible.length) setSlotMarker(pile, item);
