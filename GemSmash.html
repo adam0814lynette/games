@@ -1,0 +1,1670 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101820" />
+  <title>Lynette's Smash</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f8fbff;
+      --muted: #9db2c0;
+      --panel: rgba(12, 24, 32, 0.82);
+      --panel-solid: #122530;
+      --line: rgba(255, 255, 255, 0.15);
+      --gold: #ffd36a;
+      --danger: #ff6b7f;
+      --good: #6ce0a6;
+      --tile: clamp(30px, 9.1vw, 52px);
+      --gap: 4px;
+      --board: calc(var(--tile) * 8 + var(--gap) * 7);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 20% -10%, rgba(255, 211, 106, 0.28), transparent 30%),
+        radial-gradient(circle at 90% 15%, rgba(96, 212, 255, 0.20), transparent 34%),
+        linear-gradient(160deg, #081016 0%, #152a2c 42%, #291835 100%);
+      color: var(--ink);
+    }
+
+    body {
+      min-height: 100svh;
+      display: grid;
+      place-items: stretch center;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .game {
+      width: min(100%, 480px);
+      min-height: 100svh;
+      padding: max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 10px;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .game::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(180deg, transparent, #000 16%, #000 80%, transparent);
+      z-index: -1;
+    }
+
+    .topbar,
+    .objective,
+    .board-wrap,
+    .level-strip,
+    .menu-card,
+    .modal-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar {
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .brand-row,
+    .stat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .stat-row {
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .level-chip,
+    .pill,
+    .icon-btn,
+    .primary,
+    .secondary {
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .level-chip {
+      padding: 8px 10px;
+      font-weight: 800;
+      color: #101820;
+      background: linear-gradient(180deg, #ffe7a1, #ffbd3f);
+      border-color: rgba(255, 255, 255, 0.38);
+      white-space: nowrap;
+    }
+
+    .pill {
+      min-width: 78px;
+      flex: 1 1 78px;
+      padding: 8px 10px;
+      display: grid;
+      gap: 2px;
+    }
+
+    .pill small {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pill strong {
+      font-size: 17px;
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));
+    }
+
+    .icon-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2.5;
+    }
+
+    .objective {
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .objective-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .objective-text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.3;
+      min-height: 18px;
+    }
+
+    .progress {
+      height: 9px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #58e19d, #ffe06d);
+      border-radius: inherit;
+      transition: width 260ms ease;
+    }
+
+    .board-shell {
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      min-height: 0;
+    }
+
+    .board-wrap {
+      width: calc(var(--board) + 18px);
+      max-width: calc(100vw - 24px);
+      aspect-ratio: 1;
+      border-radius: 8px;
+      padding: 9px;
+      position: relative;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.13), transparent 26%),
+        linear-gradient(180deg, rgba(18, 43, 52, 0.95), rgba(8, 16, 22, 0.92));
+      overflow: hidden;
+    }
+
+    .board-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,0.10);
+      pointer-events: none;
+    }
+
+    .board {
+      position: relative;
+      width: var(--board);
+      height: var(--board);
+      display: grid;
+      grid-template-columns: repeat(8, var(--tile));
+      grid-template-rows: repeat(8, var(--tile));
+      gap: var(--gap);
+    }
+
+    .cell {
+      position: relative;
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 35% 25%, rgba(255,255,255,0.10), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.12));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.11),
+        inset 0 -8px 14px rgba(0,0,0,0.16);
+    }
+
+    .cell.frost::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 7px;
+      background:
+        linear-gradient(135deg, rgba(222, 247, 255, 0.65), rgba(101, 205, 244, 0.18)),
+        repeating-linear-gradient(45deg, transparent 0 7px, rgba(255,255,255,0.20) 8px 9px);
+      border: 1px solid rgba(218, 249, 255, 0.6);
+      pointer-events: none;
+    }
+
+    .cell.flash {
+      animation: tileFlash 820ms ease-in-out 2;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255, 246, 170, 0.55), rgba(255, 189, 63, 0.18) 42%, transparent 68%),
+        linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255, 211, 106, 0.16));
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 244, 179, 0.62),
+        0 0 18px rgba(255, 211, 106, 0.42);
+    }
+
+    .gem {
+      position: absolute;
+      width: var(--tile);
+      height: var(--tile);
+      left: calc(var(--x) * (var(--tile) + var(--gap)));
+      top: calc(var(--y) * (var(--tile) + var(--gap)));
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: transparent;
+      will-change: transform, opacity;
+      transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 140ms ease, opacity 170ms ease;
+      z-index: 3;
+    }
+
+    .gem button {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border-radius: 8px;
+      background: transparent;
+      display: grid;
+      place-items: center;
+    }
+
+    .gem svg {
+      width: 94%;
+      height: 94%;
+      overflow: visible;
+      filter: drop-shadow(0 7px 8px rgba(0,0,0,0.38));
+    }
+
+    .gem.selected {
+      transform: scale(1.08);
+      z-index: 5;
+      filter: brightness(1.18);
+    }
+
+    .gem.matched {
+      opacity: 0;
+      transform: scale(0.35) rotate(22deg);
+    }
+
+    .gem.special-flash {
+      animation: gemFlash 820ms ease-in-out 2;
+      z-index: 7;
+    }
+
+    .gem.spawn {
+      animation: spawnGem 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    .gem.hint {
+      animation: hint 900ms ease infinite;
+    }
+
+    .special-badge {
+      position: absolute;
+      width: 21px;
+      height: 21px;
+      right: 0;
+      bottom: -1px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #f8fbff;
+      color: #10222b;
+      border: 2px solid rgba(255,255,255,0.95);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.32);
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    @keyframes hint {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    @keyframes spawnGem {
+      from { opacity: 0; transform: translateY(calc(var(--tile) * -1.2)) scale(0.72); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes tileFlash {
+      0%, 100% { filter: brightness(1); transform: scale(1); }
+      50% { filter: brightness(1.55); transform: scale(1.04); }
+    }
+
+    @keyframes gemFlash {
+      0%, 100% { filter: brightness(1); transform: scale(1); }
+      50% { filter: brightness(1.85); transform: scale(1.16); }
+    }
+
+    .float-score {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%);
+      color: #fff2a9;
+      font-size: 34px;
+      font-weight: 900;
+      text-shadow: 0 3px 12px rgba(0,0,0,0.48);
+      pointer-events: none;
+      animation: popScore 780ms ease forwards;
+      z-index: 20;
+    }
+
+    @keyframes popScore {
+      0% { opacity: 0; transform: translate(-50%, -30%) scale(0.65); }
+      25% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+      100% { opacity: 0; transform: translate(-50%, -92%) scale(0.88); }
+    }
+
+    .level-strip {
+      border-radius: 8px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .secondary,
+    .primary {
+      min-height: 42px;
+      padding: 10px 12px;
+      font-weight: 800;
+    }
+
+    .primary {
+      color: #101820;
+      background: linear-gradient(180deg, #78ffc0, #29c475);
+      border-color: rgba(255,255,255,0.42);
+    }
+
+    .secondary {
+      background: linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0.06));
+    }
+
+    .level-status {
+      display: grid;
+      gap: 2px;
+      text-align: center;
+      min-width: 0;
+    }
+
+    .level-status strong {
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .level-status span {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .menu,
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 8, 12, 0.72);
+      display: none;
+      place-items: center;
+      padding: 18px;
+      z-index: 50;
+    }
+
+    .menu.open,
+    .modal.open { display: grid; }
+
+    .menu-card,
+    .modal-card {
+      width: min(100%, 390px);
+      border-radius: 8px;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      text-align: center;
+    }
+
+    .menu-card h2,
+    .modal-card h2 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .menu-card p,
+    .modal-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .menu-actions {
+      display: grid;
+      gap: 9px;
+    }
+
+    .menu-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .menu-tab {
+      min-height: 40px;
+      padding: 8px 10px;
+      font-weight: 800;
+    }
+
+    .menu-tab.active {
+      color: #101820;
+      background: linear-gradient(180deg, #ffe7a1, #ffbd3f);
+    }
+
+    .menu-panel {
+      display: none;
+      gap: 9px;
+    }
+
+    .menu-panel.active {
+      display: grid;
+    }
+
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 7px;
+      max-height: min(42svh, 330px);
+      overflow: auto;
+      padding: 2px;
+      overscroll-behavior: contain;
+    }
+
+    .level-node {
+      min-height: 58px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      gap: 1px;
+      padding: 6px 4px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--ink);
+    }
+
+    .level-node strong {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .level-node span {
+      min-height: 13px;
+      color: var(--gold);
+      font-size: 11px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .level-node small {
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .level-node.current {
+      border-color: rgba(255, 211, 106, 0.9);
+      box-shadow: inset 0 0 0 1px rgba(255, 211, 106, 0.35), 0 0 12px rgba(255, 211, 106, 0.18);
+    }
+
+    .level-node.completed {
+      background: linear-gradient(180deg, rgba(108, 224, 166, 0.22), rgba(255,255,255,0.08));
+    }
+
+    .level-node.locked {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .danger {
+      color: #fff;
+      background: linear-gradient(180deg, rgba(255, 107, 127, 0.55), rgba(145, 35, 55, 0.55));
+      border-color: rgba(255, 190, 200, 0.35);
+    }
+
+    .option-row,
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.10);
+      text-align: left;
+    }
+
+    .option-row span,
+    .result-row span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .switch {
+      width: 50px;
+      height: 28px;
+      border-radius: 999px;
+      padding: 3px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.16);
+      display: flex;
+      justify-content: flex-start;
+      flex: 0 0 auto;
+    }
+
+    .switch.on {
+      justify-content: flex-end;
+      background: rgba(108, 224, 166, 0.35);
+    }
+
+    .switch::before {
+      content: "";
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f8fbff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    }
+
+    .result-stats {
+      display: grid;
+      gap: 8px;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(20px);
+      min-width: min(88vw, 360px);
+      padding: 12px 14px;
+      border-radius: 8px;
+      color: #10222b;
+      background: #f8fbff;
+      box-shadow: 0 16px 34px rgba(0,0,0,0.32);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 80;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .landscape-block {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: #081016;
+      color: #f8fbff;
+      place-items: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .landscape-block div {
+      display: grid;
+      gap: 10px;
+      max-width: 330px;
+    }
+
+    .landscape-block strong { font-size: 24px; }
+    .landscape-block span { color: var(--muted); line-height: 1.4; }
+
+    @media (orientation: landscape) and (max-height: 560px) {
+      .landscape-block { display: grid; }
+    }
+
+    @media (max-width: 374px) {
+      :root { --tile: clamp(30px, 8.9vw, 38px); }
+      h1 { font-size: 21px; }
+      .pill { min-width: 68px; padding: 7px 8px; }
+      .pill strong { font-size: 15px; }
+      .objective-text { font-size: 13px; }
+      .secondary, .primary { padding-inline: 9px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game" aria-label="Lynette's Smash match three game">
+    <section class="topbar">
+      <div class="brand-row">
+        <h1>Lynette's Smash</h1>
+        <div class="level-chip" id="levelChip">Level 1</div>
+      </div>
+      <div class="stat-row">
+        <div class="pill"><small>Moves</small><strong id="moves">0</strong></div>
+        <div class="pill"><small>Score</small><strong id="score">0</strong></div>
+        <button class="icon-btn" id="menuBtn" type="button" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
+        </button>
+        <button class="icon-btn" id="soundBtn" type="button" aria-label="Toggle sound">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15 9a4 4 0 0 1 0 6"/><path d="M17.5 6.5a8 8 0 0 1 0 11"/></svg>
+        </button>
+        <button class="icon-btn" id="restartBtn" type="button" aria-label="Restart level">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v6h6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="objective" aria-live="polite">
+      <div class="objective-title">
+        <span>Objective</span>
+        <span id="targetLine">Ready</span>
+      </div>
+      <p class="objective-text" id="objectiveText"></p>
+      <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+    </section>
+
+    <section class="board-shell">
+      <div class="board-wrap">
+        <div class="board" id="board" aria-label="Gem board"></div>
+      </div>
+    </section>
+
+    <section class="level-strip">
+      <button class="secondary" id="prevBtn" type="button">Previous</button>
+      <div class="level-status">
+        <strong id="levelName">Crystal Start</strong>
+        <span id="levelMeta">100 levels available offline</span>
+      </div>
+      <button class="primary" id="nextBtn" type="button">Next</button>
+    </section>
+  </main>
+
+  <div class="menu open" id="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+    <div class="menu-card">
+      <h2 id="menuTitle">Lynette's Smash</h2>
+      <p id="menuProgress">Level 1 unlocked</p>
+      <div class="menu-tabs">
+        <button class="secondary menu-tab active" id="playTabBtn" type="button">Play</button>
+        <button class="secondary menu-tab" id="levelsTabBtn" type="button">Levels</button>
+      </div>
+      <div class="menu-actions">
+        <div class="menu-panel active" id="playPanel">
+          <button class="primary" id="continueBtn" type="button">Play Current Level</button>
+          <button class="secondary" id="newRunBtn" type="button">Replay Current Level</button>
+          <div class="option-row">
+            <div><strong>Sound</strong><br><span>Gem taps and level cues</span></div>
+            <button class="switch on" id="menuSoundBtn" type="button" aria-label="Toggle sound"></button>
+          </div>
+          <div class="option-row">
+            <div><strong>Hints</strong><br><span>Show a move after a pause</span></div>
+            <button class="switch on" id="menuHintsBtn" type="button" aria-label="Toggle hints"></button>
+          </div>
+          <button class="secondary danger" id="clearDataBtn" type="button">Clear Data</button>
+        </div>
+        <div class="menu-panel" id="levelsPanel">
+          <div class="level-grid" id="levelGrid" aria-label="Level progress"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <h2 id="modalTitle">Level Complete</h2>
+      <p id="modalText"></p>
+      <div class="result-stats" id="modalStats"></div>
+      <div class="modal-actions">
+        <button class="secondary" id="modalReplay" type="button">Replay</button>
+        <button class="primary" id="modalNext" type="button">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="landscape-block">
+    <div>
+      <strong>Portrait Only</strong>
+      <span>Rotate your device upright to play Lynette's Smash.</span>
+    </div>
+  </div>
+
+  <script>
+    const SIZE = 8;
+    const GEM_TYPES = [
+      { id: "ruby", name: "Ruby", colors: ["#ff8793", "#ef2f59", "#9f1739"], shape: "hex" },
+      { id: "topaz", name: "Topaz", colors: ["#ffe38d", "#f5a726", "#a85b08"], shape: "diamond" },
+      { id: "emerald", name: "Emerald", colors: ["#92f7b8", "#22b96e", "#087749"], shape: "emerald" },
+      { id: "sapphire", name: "Sapphire", colors: ["#9dd7ff", "#2f87e7", "#1746a2"], shape: "kite" },
+      { id: "amethyst", name: "Amethyst", colors: ["#dda9ff", "#944ce6", "#522195"], shape: "oct" },
+      { id: "opal", name: "Opal", colors: ["#fcffff", "#7fdbe7", "#407c93"], shape: "round" }
+    ];
+    const STORAGE_KEY = "lynettes-smash-save-v1";
+    let nextGemId = 1;
+    const state = {
+      level: 1,
+      unlocked: 1,
+      board: [],
+      moves: 0,
+      startMoves: 0,
+      score: 0,
+      selected: null,
+      busy: false,
+      sound: true,
+      hints: true,
+      completions: {},
+      stats: {},
+      frost: [],
+      hintTimer: null,
+      levelDone: false,
+      pointer: null,
+      lastSwipeAt: 0
+    };
+
+    const el = {
+      board: document.getElementById("board"),
+      levelChip: document.getElementById("levelChip"),
+      moves: document.getElementById("moves"),
+      score: document.getElementById("score"),
+      targetLine: document.getElementById("targetLine"),
+      objectiveText: document.getElementById("objectiveText"),
+      progressBar: document.getElementById("progressBar"),
+      levelName: document.getElementById("levelName"),
+      levelMeta: document.getElementById("levelMeta"),
+      menu: document.getElementById("menu"),
+      menuBtn: document.getElementById("menuBtn"),
+      playTabBtn: document.getElementById("playTabBtn"),
+      levelsTabBtn: document.getElementById("levelsTabBtn"),
+      playPanel: document.getElementById("playPanel"),
+      levelsPanel: document.getElementById("levelsPanel"),
+      continueBtn: document.getElementById("continueBtn"),
+      newRunBtn: document.getElementById("newRunBtn"),
+      clearDataBtn: document.getElementById("clearDataBtn"),
+      levelGrid: document.getElementById("levelGrid"),
+      menuProgress: document.getElementById("menuProgress"),
+      menuSoundBtn: document.getElementById("menuSoundBtn"),
+      menuHintsBtn: document.getElementById("menuHintsBtn"),
+      prevBtn: document.getElementById("prevBtn"),
+      nextBtn: document.getElementById("nextBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      soundBtn: document.getElementById("soundBtn"),
+      modal: document.getElementById("modal"),
+      modalTitle: document.getElementById("modalTitle"),
+      modalText: document.getElementById("modalText"),
+      modalStats: document.getElementById("modalStats"),
+      modalReplay: document.getElementById("modalReplay"),
+      modalNext: document.getElementById("modalNext"),
+      toast: document.getElementById("toast")
+    };
+
+    function levelConfig(level) {
+      const index = level - 1;
+      const palette = Math.min(6, 4 + Math.floor(index / 14));
+      const frost = Math.max(0, Math.floor((index - 4) / 3));
+      const moves = Math.max(16, 24 - Math.floor(index / 8));
+      const targetScore = 1500 + index * 185 + Math.floor(index / 10) * 520;
+      const typeCycle = index % 5;
+      const collectType = GEM_TYPES[index % palette].id;
+      const collectTwo = GEM_TYPES[(index + 2) % palette].id;
+      const collectTarget = 14 + Math.floor(index * 0.82);
+      const frostTarget = Math.min(28, 8 + Math.floor(index * 0.62));
+      let objective;
+      if (typeCycle === 0) {
+        objective = { kind: "score", targetScore };
+      } else if (typeCycle === 1) {
+        objective = { kind: "collect", collect: { [collectType]: collectTarget } };
+      } else if (typeCycle === 2) {
+        objective = { kind: "frost", frostTarget };
+      } else if (typeCycle === 3) {
+        objective = { kind: "scoreCollect", targetScore: Math.round(targetScore * 0.78), collect: { [collectType]: Math.max(8, collectTarget - 4) } };
+      } else {
+        objective = { kind: "doubleCollect", collect: { [collectType]: Math.max(8, collectTarget - 5), [collectTwo]: Math.max(7, collectTarget - 7) } };
+      }
+      const frostCount = objective.frostTarget ? objective.frostTarget : frost;
+      return {
+        level,
+        name: levelName(level),
+        palette,
+        moves,
+        frost: Math.min(28, frostCount),
+        objective
+      };
+    }
+
+    function levelName(level) {
+      const names = ["Crystal Start", "Ruby Lift", "Topaz Run", "Emerald Bend", "Sapphire Steps", "Amethyst Gate", "Opal Drift", "Vault Spark", "Prism Path", "Crown Crush"];
+      return names[(level - 1) % names.length] + " " + Math.ceil(level / 10);
+    }
+
+    function loadSave() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        state.unlocked = Math.max(1, Math.min(100, saved.unlocked || 1));
+        state.level = Math.max(1, Math.min(state.unlocked, saved.level || 1));
+        state.sound = saved.sound !== false;
+        state.hints = saved.hints !== false;
+        state.completions = saved.completions && typeof saved.completions === "object" ? saved.completions : {};
+      } catch {
+        state.level = 1;
+        state.unlocked = 1;
+        state.completions = {};
+      }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        level: state.level,
+        unlocked: state.unlocked,
+        sound: state.sound,
+        hints: state.hints,
+        completions: state.completions
+      }));
+    }
+
+    function startLevel(level = state.level) {
+      state.level = Math.max(1, Math.min(100, level));
+      const cfg = levelConfig(state.level);
+      state.moves = cfg.moves;
+      state.startMoves = cfg.moves;
+      state.score = 0;
+      state.stats = { collected: {}, frostCleared: 0, gemsCleared: 0, bestChain: 0, biggestSmash: 0 };
+      state.frost = makeFrost(cfg.frost);
+      state.selected = null;
+      state.busy = false;
+      state.levelDone = false;
+      state.board = makeBoard(cfg);
+      ensureMoveExists();
+      el.modal.classList.remove("open");
+      clearHint();
+      render();
+      queueHint();
+      save();
+    }
+
+    function makeBoard(cfg) {
+      const board = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+          board[y][x] = newGem(cfg.palette, board, x, y);
+        }
+      }
+      return board;
+    }
+
+    function newGem(palette, board, x, y) {
+      let type;
+      do {
+        type = randomType(palette);
+      } while (
+        (x >= 2 && board[y][x - 1]?.type === type && board[y][x - 2]?.type === type) ||
+        (y >= 2 && board[y - 1][x]?.type === type && board[y - 2][x]?.type === type)
+      );
+      return { id: nextGemId++, type, special: null };
+    }
+
+    function randomType(palette = levelConfig(state.level).palette) {
+      return GEM_TYPES[Math.floor(Math.random() * palette)].id;
+    }
+
+    function makeFrost(count) {
+      const frost = Array.from({ length: SIZE }, () => Array(SIZE).fill(false));
+      const spots = [];
+      for (let y = 1; y < SIZE - 1; y++) {
+        for (let x = 1; x < SIZE - 1; x++) spots.push({ x, y });
+      }
+      shuffle(spots).slice(0, count).forEach(({ x, y }) => {
+        frost[y][x] = true;
+      });
+      return frost;
+    }
+
+    function shuffle(items) {
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+      return items;
+    }
+
+    function render() {
+      const cfg = levelConfig(state.level);
+      el.levelChip.textContent = `Level ${state.level}`;
+      el.moves.textContent = state.moves;
+      el.score.textContent = state.score;
+      el.levelName.textContent = cfg.name;
+      el.levelMeta.textContent = `${state.unlocked} unlocked / 100 levels`;
+      el.prevBtn.disabled = state.level <= 1 || state.busy;
+      el.nextBtn.disabled = state.level >= state.unlocked || state.busy;
+      el.menuProgress.textContent = `Level ${state.level} selected | ${completedCount()} complete | ${state.unlocked} unlocked`;
+      renderObjective(cfg);
+      renderBoard();
+      renderLevelGrid();
+      updateSoundIcon();
+    }
+
+    function renderObjective(cfg) {
+      const objective = cfg.objective;
+      const parts = [];
+      if (objective.targetScore) parts.push(`${Math.min(state.score, objective.targetScore).toLocaleString()} / ${objective.targetScore.toLocaleString()} score`);
+      if (objective.frostTarget) parts.push(`${state.stats.frostCleared || 0} / ${objective.frostTarget} frost`);
+      if (objective.collect) {
+        for (const [type, target] of Object.entries(objective.collect)) {
+          parts.push(`${state.stats.collected[type] || 0} / ${target} ${gemName(type)}`);
+        }
+      }
+      el.targetLine.textContent = parts.join(" | ");
+      el.objectiveText.textContent = objectiveText(objective);
+      el.progressBar.style.width = `${Math.round(progressFor(objective) * 100)}%`;
+    }
+
+    function completedCount() {
+      return Object.keys(state.completions).length;
+    }
+
+    function resultStars() {
+      const efficiency = state.startMoves ? state.moves / state.startMoves : 0;
+      if (efficiency >= 0.35) return 3;
+      if (efficiency >= 0.16) return 2;
+      return 1;
+    }
+
+    function recordCompletion() {
+      const level = String(state.level);
+      const result = {
+        level: state.level,
+        stars: resultStars(),
+        score: state.score,
+        movesUsed: state.startMoves - state.moves,
+        movesLeft: state.moves,
+        gemsCleared: state.stats.gemsCleared || 0,
+        biggestSmash: state.stats.biggestSmash || 0,
+        bestChain: state.stats.bestChain || 0,
+        completedAt: new Date().toISOString()
+      };
+      const previous = state.completions[level];
+      if (!previous || result.stars > previous.stars || (result.stars === previous.stars && result.score > previous.score)) {
+        state.completions[level] = result;
+      }
+    }
+
+    function renderLevelGrid() {
+      let html = "";
+      for (let level = 1; level <= 100; level++) {
+        const result = state.completions[String(level)];
+        const unlocked = level <= state.unlocked;
+        const classes = [
+          "level-node",
+          result ? "completed" : "",
+          level === state.level ? "current" : "",
+          unlocked ? "" : "locked"
+        ].filter(Boolean).join(" ");
+        const stars = result ? "★".repeat(result.stars) + "☆".repeat(3 - result.stars) : unlocked ? "Ready" : "Locked";
+        const score = result ? result.score.toLocaleString() : "";
+        html += `<button class="${classes}" type="button" data-level="${level}" ${unlocked ? "" : "disabled"}>
+          <strong>${level}</strong>
+          <span>${stars}</span>
+          <small>${score}</small>
+        </button>`;
+      }
+      el.levelGrid.innerHTML = html;
+    }
+
+    function objectiveText(objective) {
+      if (objective.kind === "score") return `Reach ${objective.targetScore.toLocaleString()} points.`;
+      if (objective.kind === "collect") return `Collect ${collectText(objective.collect)}.`;
+      if (objective.kind === "frost") return `Clear ${objective.frostTarget} frosted tiles.`;
+      if (objective.kind === "scoreCollect") return `Reach ${objective.targetScore.toLocaleString()} points and collect ${collectText(objective.collect)}.`;
+      return `Collect ${collectText(objective.collect)}.`;
+    }
+
+    function collectText(collect) {
+      return Object.entries(collect).map(([type, target]) => `${target} ${gemName(type)}`).join(" and ");
+    }
+
+    function gemName(type) {
+      return GEM_TYPES.find(g => g.id === type)?.name || type;
+    }
+
+    function progressFor(objective) {
+      const portions = [];
+      if (objective.targetScore) portions.push(Math.min(1, state.score / objective.targetScore));
+      if (objective.frostTarget) portions.push(Math.min(1, (state.stats.frostCleared || 0) / objective.frostTarget));
+      if (objective.collect) {
+        for (const [type, target] of Object.entries(objective.collect)) {
+          portions.push(Math.min(1, (state.stats.collected[type] || 0) / target));
+        }
+      }
+      return portions.length ? portions.reduce((a, b) => a + b, 0) / portions.length : 0;
+    }
+
+    function renderBoard() {
+      const previous = new Map();
+      el.board.querySelectorAll(".gem[data-id]").forEach(node => {
+        previous.set(node.dataset.id, node.getBoundingClientRect());
+      });
+      const selectedKey = state.selected ? key(state.selected.x, state.selected.y) : "";
+      let html = "";
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+          html += `<div class="cell${state.frost[y]?.[x] ? " frost" : ""}" data-cell="${key(x, y)}" style="grid-column:${x + 1};grid-row:${y + 1}"></div>`;
+        }
+      }
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+          const gem = state.board[y][x];
+          if (!gem) continue;
+          html += `<div class="gem${selectedKey === key(x, y) ? " selected" : ""}" data-id="${gem.id}" data-key="${key(x, y)}" style="--x:${x};--y:${y}">
+            <button type="button" aria-label="${gemName(gem.type)} gem">${gemSvg(gem.type)}${gem.special ? specialBadge(gem.special) : ""}</button>
+          </div>`;
+        }
+      }
+      el.board.innerHTML = html;
+      el.board.querySelectorAll(".gem[data-id]").forEach(node => {
+        const oldBox = previous.get(node.dataset.id);
+        if (!oldBox) {
+          node.classList.add("spawn");
+          return;
+        }
+        const newBox = node.getBoundingClientRect();
+        const dx = oldBox.left - newBox.left;
+        const dy = oldBox.top - newBox.top;
+        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+          node.style.transform = `translate(${dx}px, ${dy}px)`;
+          node.style.transition = "none";
+          requestAnimationFrame(() => {
+            node.style.transition = "";
+            node.style.transform = "";
+          });
+        }
+      });
+    }
+
+    function key(x, y) {
+      return `${x},${y}`;
+    }
+
+    function gemSvg(type) {
+      const gem = GEM_TYPES.find(g => g.id === type);
+      const id = `g-${type}`;
+      const points = {
+        hex: "50,4 86,22 92,62 50,96 8,62 14,22",
+        diamond: "50,3 94,48 50,97 6,48",
+        emerald: "28,6 72,6 94,28 94,72 72,94 28,94 6,72 6,28",
+        kite: "50,2 88,34 70,94 30,94 12,34",
+        oct: "32,5 68,5 95,32 95,68 68,95 32,95 5,68 5,32",
+        round: "50,5 78,15 95,42 88,74 60,96 28,88 6,62 14,27"
+      }[gem.shape];
+      return `<svg viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <linearGradient id="${id}" x1="20%" y1="8%" x2="82%" y2="96%">
+            <stop offset="0" stop-color="${gem.colors[0]}"/>
+            <stop offset="0.46" stop-color="${gem.colors[1]}"/>
+            <stop offset="1" stop-color="${gem.colors[2]}"/>
+          </linearGradient>
+          <radialGradient id="${id}-shine" cx="30%" cy="22%" r="45%">
+            <stop offset="0" stop-color="#fff" stop-opacity="0.85"/>
+            <stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/>
+            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <polygon points="${points}" fill="url(#${id})" stroke="rgba(255,255,255,0.72)" stroke-width="3" />
+        <polygon points="50,9 74,25 62,45 50,93 38,45 26,25" fill="rgba(255,255,255,0.16)" />
+        <polygon points="18,30 38,45 50,93 14,62" fill="rgba(0,0,0,0.12)" />
+        <polygon points="82,30 62,45 50,93 86,62" fill="rgba(0,0,0,0.20)" />
+        <ellipse cx="33" cy="24" rx="18" ry="12" fill="url(#${id}-shine)" transform="rotate(-24 33 24)" />
+      </svg>`;
+    }
+
+    function specialBadge(special) {
+      return `<span class="special-badge">${special === "row" ? "↔" : special === "col" ? "↕" : "✦"}</span>`;
+    }
+
+    function onBoardTap(event) {
+      if (Date.now() - state.lastSwipeAt < 350) return;
+      const gemEl = event.target.closest(".gem");
+      if (!gemEl || state.busy || state.levelDone) return;
+      const [x, y] = gemEl.dataset.key.split(",").map(Number);
+      if (!state.selected) {
+        state.selected = { x, y };
+        renderBoard();
+        return;
+      }
+      const first = state.selected;
+      const second = { x, y };
+      if (first.x === second.x && first.y === second.y) {
+        state.selected = null;
+        renderBoard();
+        return;
+      }
+      if (!adjacent(first, second)) {
+        state.selected = second;
+        renderBoard();
+        return;
+      }
+      clearHint();
+      attemptSwap(first, second);
+    }
+
+    function onPointerDown(event) {
+      const gemEl = event.target.closest(".gem");
+      if (!gemEl || state.busy || state.levelDone) return;
+      const [x, y] = gemEl.dataset.key.split(",").map(Number);
+      state.pointer = { x, y, startX: event.clientX, startY: event.clientY };
+    }
+
+    function onPointerUp(event) {
+      if (!state.pointer || state.busy || state.levelDone) {
+        state.pointer = null;
+        return;
+      }
+      const start = state.pointer;
+      state.pointer = null;
+      const dx = event.clientX - start.startX;
+      const dy = event.clientY - start.startY;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+      const horizontal = Math.abs(dx) > Math.abs(dy);
+      const target = {
+        x: start.x + (horizontal ? Math.sign(dx) : 0),
+        y: start.y + (horizontal ? 0 : Math.sign(dy))
+      };
+      if (!inside(target.x, target.y)) return;
+      state.lastSwipeAt = Date.now();
+      state.selected = null;
+      clearHint();
+      attemptSwap({ x: start.x, y: start.y }, target);
+      event.preventDefault();
+    }
+
+    async function attemptSwap(a, b) {
+      state.busy = true;
+      state.selected = null;
+      swap(a, b);
+      render();
+      await wait(190);
+      let matches = findMatches();
+      const specialHits = [];
+      if (state.board[a.y][a.x]?.special) specialHits.push(a);
+      if (state.board[b.y][b.x]?.special) specialHits.push(b);
+      if (!matches.length && !specialHits.length) {
+        swap(a, b);
+        buzz();
+        render();
+        state.busy = false;
+        queueHint();
+        return;
+      }
+      state.moves--;
+      tickSound(420, 0.045);
+      if (specialHits.length) {
+        matches = matches.concat(specialHits.map(pos => ({ cells: specialCells(pos), maker: pos, type: "special" })));
+      }
+      await resolve(matches, a, b);
+      state.busy = false;
+      render();
+      checkEnd();
+      queueHint();
+    }
+
+    async function resolve(initialMatches, a, b) {
+      let matches = initialMatches;
+      let chain = 0;
+      while (matches.length) {
+        chain++;
+        state.stats.bestChain = Math.max(state.stats.bestChain || 0, chain);
+        const clearMap = new Map();
+        let specialToCreate = null;
+        for (const match of matches) {
+          for (const cell of match.cells) clearMap.set(key(cell.x, cell.y), cell);
+          if (!specialToCreate && match.type !== "special" && match.cells.length >= 4) {
+            specialToCreate = chooseSpecial(match, a, b);
+          }
+        }
+        let specialExpanded = false;
+        for (const cell of [...clearMap.values()]) {
+          const gem = state.board[cell.y][cell.x];
+          if (!gem?.special) continue;
+          specialExpanded = true;
+          for (const specialCell of specialCells(cell)) {
+            clearMap.set(key(specialCell.x, specialCell.y), specialCell);
+          }
+        }
+        const cleared = [...clearMap.values()];
+        const usedSpecial = specialExpanded || matches.some(match => match.type === "special");
+        state.stats.biggestSmash = Math.max(state.stats.biggestSmash || 0, cleared.length);
+        if (usedSpecial) {
+          flashCells(cleared);
+          tickSound(560, 0.045);
+          await wait(1800);
+        }
+        markMatched(cleared);
+        addScore(cleared.length * 65 * chain);
+        recordCleared(cleared);
+        await wait(usedSpecial ? 300 : 170);
+        for (const { x, y } of cleared) state.board[y][x] = null;
+        if (specialToCreate && state.board[specialToCreate.y]?.[specialToCreate.x] === null) {
+          state.board[specialToCreate.y][specialToCreate.x] = { id: nextGemId++, type: specialToCreate.type, special: specialToCreate.special };
+        }
+        collapse();
+        fillBoard();
+        render();
+        await wait(210);
+        matches = findMatches();
+      }
+      ensureMoveExists();
+    }
+
+    function markMatched(cells) {
+      for (const { x, y } of cells) {
+        const node = el.board.querySelector(`[data-key="${key(x, y)}"]`);
+        if (node) node.classList.add("matched");
+      }
+    }
+
+    function flashCells(cells) {
+      for (const { x, y } of cells) {
+        const cell = el.board.querySelector(`.cell[data-cell="${key(x, y)}"]`);
+        const gem = el.board.querySelector(`.gem[data-key="${key(x, y)}"]`);
+        if (cell) cell.classList.add("flash");
+        if (gem) gem.classList.add("special-flash");
+      }
+    }
+
+    function recordCleared(cells) {
+      for (const { x, y } of cells) {
+        const gem = state.board[y][x];
+        if (!gem) continue;
+        state.stats.gemsCleared = (state.stats.gemsCleared || 0) + 1;
+        state.stats.collected[gem.type] = (state.stats.collected[gem.type] || 0) + 1;
+        if (state.frost[y]?.[x]) {
+          state.stats.frostCleared = (state.stats.frostCleared || 0) + 1;
+          state.frost[y][x] = false;
+        }
+      }
+    }
+
+    function addScore(points) {
+      state.score += points;
+      const badge = document.createElement("div");
+      badge.className = "float-score";
+      badge.textContent = `+${points}`;
+      document.querySelector(".board-wrap").appendChild(badge);
+      setTimeout(() => badge.remove(), 780);
+      tickSound(Math.min(880, 360 + points / 8), 0.035);
+    }
+
+    function chooseSpecial(match, a, b) {
+      const preferred = match.cells.find(c => (c.x === b.x && c.y === b.y) || (c.x === a.x && c.y === a.y)) || match.cells[Math.floor(match.cells.length / 2)];
+      const base = state.board[preferred.y][preferred.x];
+      return {
+        x: preferred.x,
+        y: preferred.y,
+        type: base?.type || randomType(),
+        special: match.cells.length >= 5 ? "burst" : match.orientation === "row" ? "row" : "col"
+      };
+    }
+
+    function specialCells(pos) {
+      const gem = state.board[pos.y][pos.x];
+      if (!gem?.special) return [pos];
+      const cells = [];
+      if (gem.special === "row") {
+        for (let x = 0; x < SIZE; x++) cells.push({ x, y: pos.y });
+      } else if (gem.special === "col") {
+        for (let y = 0; y < SIZE; y++) cells.push({ x: pos.x, y });
+      } else {
+        for (let y = pos.y - 1; y <= pos.y + 1; y++) {
+          for (let x = pos.x - 1; x <= pos.x + 1; x++) {
+            if (inside(x, y)) cells.push({ x, y });
+          }
+        }
+      }
+      return cells;
+    }
+
+    function findMatches() {
+      const matches = [];
+      for (let y = 0; y < SIZE; y++) {
+        let run = [{ x: 0, y }];
+        for (let x = 1; x <= SIZE; x++) {
+          if (x < SIZE && state.board[y][x]?.type === state.board[y][x - 1]?.type) {
+            run.push({ x, y });
+          } else {
+            if (run.length >= 3) matches.push({ cells: run.slice(), orientation: "row" });
+            run = x < SIZE ? [{ x, y }] : [];
+          }
+        }
+      }
+      for (let x = 0; x < SIZE; x++) {
+        let run = [{ x, y: 0 }];
+        for (let y = 1; y <= SIZE; y++) {
+          if (y < SIZE && state.board[y][x]?.type === state.board[y - 1][x]?.type) {
+            run.push({ x, y });
+          } else {
+            if (run.length >= 3) matches.push({ cells: run.slice(), orientation: "col" });
+            run = y < SIZE ? [{ x, y }] : [];
+          }
+        }
+      }
+      return matches;
+    }
+
+    function collapse() {
+      for (let x = 0; x < SIZE; x++) {
+        const column = [];
+        for (let y = SIZE - 1; y >= 0; y--) {
+          if (state.board[y][x]) column.push(state.board[y][x]);
+        }
+        for (let y = SIZE - 1, i = 0; y >= 0; y--, i++) {
+          state.board[y][x] = column[i] || null;
+        }
+      }
+    }
+
+    function fillBoard() {
+      const cfg = levelConfig(state.level);
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+          if (!state.board[y][x]) state.board[y][x] = { id: nextGemId++, type: randomType(cfg.palette), special: null };
+        }
+      }
+    }
+
+    function ensureMoveExists() {
+      if (findPossibleMove()) return;
+      toast("No moves. Shuffling.");
+      const gems = [];
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) gems.push(state.board[y][x]);
+      }
+      let guard = 0;
+      do {
+        shuffle(gems);
+        for (let y = 0; y < SIZE; y++) {
+          for (let x = 0; x < SIZE; x++) state.board[y][x] = gems[y * SIZE + x];
+        }
+        guard++;
+      } while ((!findPossibleMove() || findMatches().length) && guard < 60);
+    }
+
+    function findPossibleMove() {
+      for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+          for (const [dx, dy] of [[1, 0], [0, 1]]) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (!inside(nx, ny)) continue;
+            swap({ x, y }, { x: nx, y: ny });
+            const possible = findMatches().length > 0;
+            swap({ x, y }, { x: nx, y: ny });
+            if (possible) return [{ x, y }, { x: nx, y: ny }];
+          }
+        }
+      }
+      return null;
+    }
+
+    function swap(a, b) {
+      [state.board[a.y][a.x], state.board[b.y][b.x]] = [state.board[b.y][b.x], state.board[a.y][a.x]];
+    }
+
+    function adjacent(a, b) {
+      return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) === 1;
+    }
+
+    function inside(x, y) {
+      return x >= 0 && x < SIZE && y >= 0 && y < SIZE;
+    }
+
+    function checkEnd() {
+      const cfg = levelConfig(state.level);
+      if (objectiveMet(cfg.objective)) {
+        state.levelDone = true;
+        state.unlocked = Math.max(state.unlocked, Math.min(100, state.level + 1));
+        recordCompletion();
+        save();
+        showResult(true, cfg);
+      } else if (state.moves <= 0) {
+        state.levelDone = true;
+        showResult(false, cfg);
+      }
+    }
+
+    function objectiveMet(objective) {
+      if (objective.targetScore && state.score < objective.targetScore) return false;
+      if (objective.frostTarget && (state.stats.frostCleared || 0) < objective.frostTarget) return false;
+      if (objective.collect) {
+        for (const [type, target] of Object.entries(objective.collect)) {
+          if ((state.stats.collected[type] || 0) < target) return false;
+        }
+      }
+      return true;
+    }
+
+    function showResult(won, cfg) {
+      const movesUsed = state.startMoves - state.moves;
+      const stars = won ? resultStars() : 0;
+      const best = state.completions[String(state.level)];
+      el.modalTitle.textContent = won ? "Level Complete" : "Try Again";
+      el.modalText.textContent = won
+        ? `${"★".repeat(stars)}${"☆".repeat(3 - stars)} Level ${state.level} cleared.${best?.score === state.score ? " New best result." : ""}`
+        : "You ran out of moves before finishing the objective.";
+      el.modalStats.innerHTML = `
+        <div class="result-row"><strong>Score</strong><span>${state.score.toLocaleString()}</span></div>
+        <div class="result-row"><strong>Moves Used</strong><span>${movesUsed} of ${state.startMoves}</span></div>
+        <div class="result-row"><strong>Gems Smashed</strong><span>${state.stats.gemsCleared || 0}</span></div>
+        <div class="result-row"><strong>Biggest Smash</strong><span>${state.stats.biggestSmash || 0} gems</span></div>
+        <div class="result-row"><strong>Best Chain</strong><span>${state.stats.bestChain || 0}x</span></div>
+      `;
+      el.modalNext.textContent = won ? state.level < 100 ? "Continue" : "Finish" : "Retry";
+      el.modal.classList.add("open");
+      tickSound(won ? 720 : 180, 0.08);
+      render();
+    }
+
+    function queueHint() {
+      clearHint();
+      if (!state.hints) return;
+      if (el.menu.classList.contains("open")) return;
+      state.hintTimer = setTimeout(() => {
+        if (state.busy || state.levelDone) return;
+        const move = findPossibleMove();
+        if (!move) return;
+        for (const pos of move) {
+          const node = el.board.querySelector(`[data-key="${key(pos.x, pos.y)}"]`);
+          if (node) node.classList.add("hint");
+        }
+      }, 5200);
+    }
+
+    function clearHint() {
+      clearTimeout(state.hintTimer);
+      el.board.querySelectorAll(".hint").forEach(node => node.classList.remove("hint"));
+    }
+
+    function toast(message) {
+      el.toast.textContent = message;
+      el.toast.classList.add("show");
+      setTimeout(() => el.toast.classList.remove("show"), 1500);
+    }
+
+    function openMenu() {
+      clearHint();
+      el.menu.classList.add("open");
+      render();
+    }
+
+    function closeMenu() {
+      el.menu.classList.remove("open");
+      queueHint();
+    }
+
+    function setMenuTab(tab) {
+      const levels = tab === "levels";
+      el.playTabBtn.classList.toggle("active", !levels);
+      el.levelsTabBtn.classList.toggle("active", levels);
+      el.playPanel.classList.toggle("active", !levels);
+      el.levelsPanel.classList.toggle("active", levels);
+      renderLevelGrid();
+    }
+
+    function resetProgress() {
+      if (!confirm("Clear all Lynette's Smash progress and restart from Level 1?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state.level = 1;
+      state.unlocked = 1;
+      state.completions = {};
+      state.sound = true;
+      state.hints = true;
+      startLevel(1);
+      setMenuTab("play");
+      openMenu();
+      toast("Progress cleared.");
+    }
+
+    function updateSoundIcon() {
+      el.soundBtn.style.opacity = state.sound ? "1" : "0.55";
+      el.menuSoundBtn.classList.toggle("on", state.sound);
+      el.menuHintsBtn.classList.toggle("on", state.hints);
+    }
+
+    function tickSound(freq = 440, gain = 0.04) {
+      if (!state.sound) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = tickSound.ctx || (tickSound.ctx = new AudioContext());
+      const osc = ctx.createOscillator();
+      const vol = ctx.createGain();
+      osc.frequency.value = freq;
+      osc.type = "sine";
+      vol.gain.value = gain;
+      osc.connect(vol);
+      vol.connect(ctx.destination);
+      osc.start();
+      vol.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+      osc.stop(ctx.currentTime + 0.1);
+    }
+
+    function buzz() {
+      tickSound(120, 0.05);
+      toast("That swap does not make a match.");
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    el.board.addEventListener("pointerdown", onPointerDown);
+    el.board.addEventListener("pointerup", onPointerUp);
+    el.board.addEventListener("pointercancel", () => { state.pointer = null; });
+    el.board.addEventListener("click", onBoardTap);
+    el.menuBtn.addEventListener("click", openMenu);
+    el.playTabBtn.addEventListener("click", () => setMenuTab("play"));
+    el.levelsTabBtn.addEventListener("click", () => setMenuTab("levels"));
+    el.continueBtn.addEventListener("click", closeMenu);
+    el.newRunBtn.addEventListener("click", () => {
+      startLevel(state.level);
+      closeMenu();
+    });
+    el.clearDataBtn.addEventListener("click", resetProgress);
+    el.levelGrid.addEventListener("click", event => {
+      const button = event.target.closest(".level-node");
+      if (!button || button.disabled) return;
+      startLevel(Number(button.dataset.level));
+      setMenuTab("play");
+      closeMenu();
+    });
+    el.restartBtn.addEventListener("click", () => startLevel(state.level));
+    el.prevBtn.addEventListener("click", () => startLevel(state.level - 1));
+    el.nextBtn.addEventListener("click", () => startLevel(state.level + 1));
+    el.soundBtn.addEventListener("click", () => {
+      state.sound = !state.sound;
+      save();
+      updateSoundIcon();
+    });
+    el.menuSoundBtn.addEventListener("click", () => {
+      state.sound = !state.sound;
+      save();
+      updateSoundIcon();
+    });
+    el.menuHintsBtn.addEventListener("click", () => {
+      state.hints = !state.hints;
+      save();
+      updateSoundIcon();
+      if (state.hints) queueHint();
+      else clearHint();
+    });
+    el.modalReplay.addEventListener("click", () => startLevel(state.level));
+    el.modalNext.addEventListener("click", () => {
+      if (objectiveMet(levelConfig(state.level).objective) && state.level < 100) startLevel(state.level + 1);
+      else if (objectiveMet(levelConfig(state.level).objective)) {
+        el.modal.classList.remove("open");
+        openMenu();
+      }
+      else startLevel(state.level);
+    });
+
+    loadSave();
+    startLevel(state.level);
+  </script>
+</body>
+</html>
