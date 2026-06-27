@@ -249,6 +249,7 @@
       grid-template-columns: repeat(8, var(--tile));
       grid-template-rows: repeat(8, var(--tile));
       gap: var(--gap);
+      touch-action: none;
     }
 
     .cell {
@@ -307,6 +308,7 @@
       background: transparent;
       display: grid;
       place-items: center;
+      touch-action: none;
     }
 
     .gem svg {
@@ -1209,7 +1211,21 @@
       const gemEl = event.target.closest(".gem");
       if (!gemEl || state.busy || state.levelDone) return;
       const [x, y] = gemEl.dataset.key.split(",").map(Number);
-      state.pointer = { x, y, startX: event.clientX, startY: event.clientY };
+      state.pointer = { x, y, startX: event.clientX, startY: event.clientY, lastX: event.clientX, lastY: event.clientY };
+      if (event.pointerId !== undefined && event.currentTarget.setPointerCapture) {
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        } catch {}
+      }
+    }
+
+    function onPointerMove(event) {
+      if (!state.pointer) return;
+      state.pointer.lastX = event.clientX;
+      state.pointer.lastY = event.clientY;
+      const dx = event.clientX - state.pointer.startX;
+      const dy = event.clientY - state.pointer.startY;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) > 8) event.preventDefault();
     }
 
     function onPointerUp(event) {
@@ -1219,9 +1235,11 @@
       }
       const start = state.pointer;
       state.pointer = null;
-      const dx = event.clientX - start.startX;
-      const dy = event.clientY - start.startY;
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+      const endX = event.clientX || start.lastX;
+      const endY = event.clientY || start.lastY;
+      const dx = endX - start.startX;
+      const dy = endY - start.startY;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
       const horizontal = Math.abs(dx) > Math.abs(dy);
       const target = {
         x: start.x + (horizontal ? Math.sign(dx) : 0),
@@ -1233,6 +1251,40 @@
       clearHint();
       attemptSwap({ x: start.x, y: start.y }, target);
       event.preventDefault();
+    }
+
+    function touchPoint(event) {
+      return event.changedTouches?.[0] || event.touches?.[0] || null;
+    }
+
+    function onTouchStart(event) {
+      if (window.PointerEvent) return;
+      const gemEl = event.target.closest(".gem");
+      const point = touchPoint(event);
+      if (!gemEl || !point || state.busy || state.levelDone) return;
+      const [x, y] = gemEl.dataset.key.split(",").map(Number);
+      state.pointer = { x, y, startX: point.clientX, startY: point.clientY, lastX: point.clientX, lastY: point.clientY };
+    }
+
+    function onTouchMove(event) {
+      if (window.PointerEvent || !state.pointer) return;
+      const point = touchPoint(event);
+      if (!point) return;
+      state.pointer.lastX = point.clientX;
+      state.pointer.lastY = point.clientY;
+      const dx = point.clientX - state.pointer.startX;
+      const dy = point.clientY - state.pointer.startY;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) > 8) event.preventDefault();
+    }
+
+    function onTouchEnd(event) {
+      if (window.PointerEvent || !state.pointer) return;
+      const point = touchPoint(event);
+      if (!point) {
+        state.pointer = null;
+        return;
+      }
+      onPointerUp({ clientX: point.clientX, clientY: point.clientY, preventDefault: () => event.preventDefault() });
     }
 
     async function attemptSwap(a, b) {
@@ -1614,8 +1666,12 @@
     }
 
     el.board.addEventListener("pointerdown", onPointerDown);
+    el.board.addEventListener("pointermove", onPointerMove);
     el.board.addEventListener("pointerup", onPointerUp);
     el.board.addEventListener("pointercancel", () => { state.pointer = null; });
+    el.board.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.board.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.board.addEventListener("touchend", onTouchEnd, { passive: false });
     el.board.addEventListener("click", onBoardTap);
     el.menuBtn.addEventListener("click", openMenu);
     el.playTabBtn.addEventListener("click", () => setMenuTab("play"));
