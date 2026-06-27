@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Arrow Escape Puzzle</title>
+  <style>
+    :root {
+      --bg: #10131f;
+      --panel: #171b2b;
+      --tile: #252b42;
+      --tile2: #2f3653;
+      --text: #f4f7ff;
+      --muted: #aab3d1;
+      --accent: #72f7ff;
+      --danger: #ff5d8f;
+      --good: #7cff9b;
+      --gold: #ffd166;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #242b4a 0%, var(--bg) 55%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .app {
+      width: min(100vw, 520px);
+      height: 100svh;
+      padding: clamp(8px, 2.2vh, 18px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(8px, 1.8vh, 14px);
+      overflow: hidden;
+    }
+
+    .topbar, .stats, .controls {
+      background: rgba(23, 27, 43, 0.9);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: clamp(14px, 2.5vh, 18px);
+      padding: clamp(9px, 1.8vh, 14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      flex-shrink: 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .level {
+      font-size: clamp(1.1rem, 4.8vw, 1.35rem);
+      font-weight: 800;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: clamp(0.75rem, 3.2vw, 0.85rem);
+      margin-top: 1px;
+    }
+
+    .hearts {
+      font-size: clamp(1.05rem, 4.8vw, 1.4rem);
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      text-align: center;
+      gap: 6px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: clamp(0.95rem, 4vw, 1.05rem);
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: clamp(0.68rem, 2.8vw, 0.75rem);
+    }
+
+    .board-wrap {
+      flex: 1 1 auto;
+      display: grid;
+      place-items: center;
+      min-height: 0;
+    }
+
+    .board {
+      width: min(92vw, 470px, calc(100svh - 250px));
+      max-height: 100%;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      gap: clamp(4px, 1.1vw, 7px);
+      padding: clamp(5px, 1.4vw, 9px);
+      border-radius: clamp(16px, 3.5vw, 22px);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.25), 0 18px 50px rgba(0,0,0,0.35);
+    }
+
+    .cell {
+      border: 0;
+      border-radius: clamp(10px, 2.6vw, 14px);
+      background: linear-gradient(145deg, var(--tile), var(--tile2));
+      color: var(--accent);
+      font-size: clamp(1.2rem, 7.5vw, 3rem);
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.25);
+      transition: transform 140ms ease, opacity 180ms ease, background 180ms ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cell.empty {
+      opacity: 0.18;
+      cursor: default;
+      color: transparent;
+    }
+
+    .cell:not(.empty):active { transform: scale(0.94); }
+
+    .cell.hint {
+      outline: 3px solid var(--gold);
+      box-shadow: 0 0 12px var(--gold), 0 0 26px rgba(255, 209, 102, 0.5);
+      animation: pulse 850ms infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    .shake { animation: shake 240ms linear; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-5px); }
+      40% { transform: translateX(5px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .exit-up { animation: exitUp 260ms ease-in forwards; }
+    .exit-down { animation: exitDown 260ms ease-in forwards; }
+    .exit-left { animation: exitLeft 260ms ease-in forwards; }
+    .exit-right { animation: exitRight 260ms ease-in forwards; }
+
+    @keyframes exitUp { to { transform: translateY(-140%); opacity: 0; } }
+    @keyframes exitDown { to { transform: translateY(140%); opacity: 0; } }
+    @keyframes exitLeft { to { transform: translateX(-140%); opacity: 0; } }
+    @keyframes exitRight { to { transform: translateX(140%); opacity: 0; } }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button.action {
+      border: 0;
+      border-radius: 14px;
+      padding: clamp(9px, 1.8vh, 13px) 12px;
+      font-size: clamp(0.92rem, 3.7vw, 1rem);
+      font-weight: 800;
+      background: var(--accent);
+      color: #071018;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #313852;
+      color: var(--text);
+    }
+
+    .icon-btn {
+      border: 0;
+      border-radius: 12px;
+      width: 40px;
+      height: 40px;
+      font-size: 1.25rem;
+      font-weight: 900;
+      background: #313852;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .menu-grid {
+      max-height: 46vh;
+      overflow: auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 16px 0;
+      padding-right: 2px;
+    }
+
+    .level-pick {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      padding: 9px 4px;
+      cursor: pointer;
+      min-height: 54px;
+    }
+
+    .level-pick.locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .level-pick strong {
+      display: block;
+      font-size: 0.9rem;
+    }
+
+    .level-pick span {
+      display: block;
+      color: var(--gold);
+      font-size: 0.75rem;
+      margin-top: 3px;
+      min-height: 1em;
+    }
+
+    .menu-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .menu-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .menu-actions .danger-btn {
+      grid-column: 1 / -1;
+      background: var(--danger);
+      color: white;
+    }
+
+    button.hidden { display: none; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 8, 16, 0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .overlay.show { display: flex; }
+
+    .modal {
+      width: min(92vw, 420px);
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 22px;
+      text-align: center;
+      box-shadow: 0 20px 70px rgba(0,0,0,0.5);
+    }
+
+    .modal h2 { margin: 0 0 8px; font-size: 1.8rem; }
+    .stars { font-size: 2rem; margin: 8px 0 14px; color: var(--gold); }
+
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 16px 0;
+      text-align: left;
+    }
+
+    .result {
+      background: rgba(255,255,255,0.06);
+      padding: 10px;
+      border-radius: 14px;
+    }
+
+    .result span { display: block; color: var(--muted); font-size: 0.75rem; }
+    .result strong { font-size: 1.1rem; }
+
+    .small-note {
+      color: var(--muted);
+      font-size: clamp(0.65rem, 2.7vw, 0.78rem);
+      text-align: center;
+      margin-top: 0;
+      flex-shrink: 0;
+    }
+
+    @media (max-height: 760px) {
+      .topbar { padding: 10px 12px; }
+      .stats { padding: 9px 12px; }
+      .controls { padding: 9px 12px; }
+      .board { width: min(90vw, calc(100svh - 235px)); }
+      .small-note { display: none; }
+    }
+
+    @media (max-height: 680px) {
+      .app { gap: 7px; padding: 7px 10px; }
+      .board { width: min(88vw, calc(100svh - 205px)); }
+      .sub { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="topbar">
+      <div>
+        <div class="level" id="levelText">Level 1</div>
+        <div class="sub" id="progressText">Clear all arrows</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="hearts" id="hearts">❤️❤️❤️</div>
+        <button class="icon-btn" id="menuBtn" aria-label="Main menu">☰</button>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><strong id="timer">0:00</strong><span>Time</span></div>
+      <div class="stat"><strong id="taps">0</strong><span>Taps</span></div>
+      <div class="stat"><strong id="misses">0</strong><span>Blocked</span></div>
+    </section>
+
+    <section class="board-wrap">
+      <div class="board" id="board"></div>
+    </section>
+
+    <section class="controls">
+      <button class="action" id="hintBtn">Hint</button>
+      <button class="action secondary hidden" id="redoBtn">Redo Level</button>
+    </section>
+
+    <div class="small-note" id="saveText"></div>
+  </main>
+
+  <div class="overlay" id="menuOverlay">
+    <div class="modal">
+      <h2>Main Menu</h2>
+      <div class="menu-summary">
+        <div class="result"><span>Highest Level</span><strong id="mHighest"></strong></div>
+        <div class="result"><span>Total Stars</span><strong id="mStars"></strong></div>
+        <div class="result"><span>Completed</span><strong id="mCompleted"></strong></div>
+      </div>
+      <div class="menu-grid" id="levelGrid"></div>
+      <div class="menu-actions">
+        <button class="action secondary" id="closeMenuBtn">Resume</button>
+        <button class="action" id="playHighestBtn">Play Highest</button>
+        <button class="action danger-btn" id="resetProgressBtn">Reset Progress</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2>Level Complete</h2>
+      <div class="stars" id="stars">⭐⭐⭐</div>
+      <div class="results">
+        <div class="result"><span>Time</span><strong id="rTime"></strong></div>
+        <div class="result"><span>Taps</span><strong id="rTaps"></strong></div>
+        <div class="result"><span>Blocked</span><strong id="rMisses"></strong></div>
+        <div class="result"><span>Hints Used</span><strong id="rHints"></strong></div>
+        <div class="result"><span>Score</span><strong id="rScore"></strong></div>
+        <div class="result"><span>Best Stars</span><strong id="rBest"></strong></div>
+      </div>
+      <button class="action" id="nextBtn">Next Level</button>
+    </div>
+  </div>
+
+  <script>
+    const ARROWS = {
+      up: "↑",
+      down: "↓",
+      left: "←",
+      right: "→"
+    };
+
+    const DELTAS = {
+      up: [-1, 0],
+      down: [1, 0],
+      left: [0, -1],
+      right: [0, 1]
+    };
+
+    const EXIT_CLASS = {
+      up: "exit-up",
+      down: "exit-down",
+      left: "exit-left",
+      right: "exit-right"
+    };
+
+    const state = {
+      level: 1,
+      size: 5,
+      board: [],
+      initialBoard: [],
+      hearts: 3,
+      taps: 0,
+      misses: 0,
+      hintsUsed: 0,
+      startedAt: Date.now(),
+      timerHandle: null,
+      hintCell: null,
+      save: {
+        highestLevel: 1,
+        bestStars: {},
+        totalCompleted: 0,
+        lifetimeHints: 0,
+        lifetimeTaps: 0
+      }
+    };
+
+    const el = {
+      board: document.getElementById("board"),
+      levelText: document.getElementById("levelText"),
+      progressText: document.getElementById("progressText"),
+      hearts: document.getElementById("hearts"),
+      timer: document.getElementById("timer"),
+      taps: document.getElementById("taps"),
+      misses: document.getElementById("misses"),
+      hintBtn: document.getElementById("hintBtn"),
+      redoBtn: document.getElementById("redoBtn"),
+      overlay: document.getElementById("overlay"),
+      stars: document.getElementById("stars"),
+      rTime: document.getElementById("rTime"),
+      rTaps: document.getElementById("rTaps"),
+      rMisses: document.getElementById("rMisses"),
+      rHints: document.getElementById("rHints"),
+      rScore: document.getElementById("rScore"),
+      rBest: document.getElementById("rBest"),
+      nextBtn: document.getElementById("nextBtn"),
+      saveText: document.getElementById("saveText"),
+      menuBtn: document.getElementById("menuBtn"),
+      menuOverlay: document.getElementById("menuOverlay"),
+      closeMenuBtn: document.getElementById("closeMenuBtn"),
+      playHighestBtn: document.getElementById("playHighestBtn"),
+      resetProgressBtn: document.getElementById("resetProgressBtn"),
+      levelGrid: document.getElementById("levelGrid"),
+      mHighest: document.getElementById("mHighest"),
+      mStars: document.getElementById("mStars"),
+      mCompleted: document.getElementById("mCompleted")
+    };
+
+    function loadSave() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("arrowEscapeSave"));
+        if (saved) {
+          state.save = { ...state.save, ...saved };
+          state.level = saved.highestLevel || 1;
+        }
+      } catch {}
+    }
+
+    function saveGame() {
+      localStorage.setItem("arrowEscapeSave", JSON.stringify(state.save));
+      el.saveText.textContent = `Highest level: ${state.save.highestLevel} • Completed: ${state.save.totalCompleted}`;
+    }
+
+    function difficulty(level) {
+      // Starts more challenging:
+      // Level 1 begins on a 6x6 board with a higher arrow density.
+      // Later levels scale into 7x7 and 8x8 boards more quickly.
+      const size = level < 8 ? 6 : level < 22 ? 7 : 8;
+      const maxCells = size * size;
+
+      // Higher starting density, then gradual growth.
+      const density = Math.min(0.84, 0.56 + level * 0.011);
+      const count = Math.min(maxCells - 4, Math.floor(maxCells * density));
+
+      // More attempts to introduce arrows that block each other,
+      // while still keeping the generated board solvable.
+      const dependencyAttempts = Math.min(150, 45 + level * 5);
+
+      return { size, count, dependencyAttempts };
+    }
+
+    function emptyBoard(size) {
+      return Array.from({ length: size }, () => Array(size).fill(null));
+    }
+
+    function cloneBoard(board) {
+      return board.map(row => row.map(cell => cell ? { ...cell } : null));
+    }
+
+    function inBounds(r, c, size) {
+      return r >= 0 && c >= 0 && r < size && c < size;
+    }
+
+    function pathClear(board, r, c) {
+      const cell = board[r][c];
+      if (!cell) return false;
+      const [dr, dc] = DELTAS[cell.dir];
+      let rr = r + dr, cc = c + dc;
+      while (inBounds(rr, cc, board.length)) {
+        if (board[rr][cc]) return false;
+        rr += dr;
+        cc += dc;
+      }
+      return true;
+    }
+
+    function randomChoice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function directionToExitFrom(r, c, size) {
+      const dirs = [];
+      if (r === 0) dirs.push("up");
+      if (r === size - 1) dirs.push("down");
+      if (c === 0) dirs.push("left");
+      if (c === size - 1) dirs.push("right");
+      return dirs.length ? randomChoice(dirs) : randomChoice(["up", "down", "left", "right"]);
+    }
+
+    function cellsThatCanPointOut(board) {
+      const size = board.length;
+      const candidates = [];
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (board[r][c]) continue;
+          for (const dir of Object.keys(DELTAS)) {
+            const temp = cloneBoard(board);
+            temp[r][c] = { dir };
+            if (pathClear(temp, r, c)) candidates.push({ r, c, dir });
+          }
+        }
+      }
+      return candidates;
+    }
+
+    function generateLevel(level) {
+      const { size, count, dependencyAttempts } = difficulty(level);
+      let board = emptyBoard(size);
+
+      // Reverse generation: every placed arrow is removable at the moment it is added.
+      // Solving in reverse placement order is therefore always valid.
+      for (let i = 0; i < count; i++) {
+        const candidates = cellsThatCanPointOut(board);
+        if (!candidates.length) break;
+        const pick = randomChoice(candidates);
+        board[pick.r][pick.c] = { dir: pick.dir };
+      }
+
+      // Add more dependency/variety by changing some arrows to point across occupied lanes
+      // only when the puzzle still remains solvable by simulation.
+      for (let i = 0; i < dependencyAttempts; i++) {
+        const occupied = [];
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            if (board[r][c]) occupied.push({ r, c });
+          }
+        }
+        const spot = randomChoice(occupied);
+        const oldDir = board[spot.r][spot.c].dir;
+        const newDir = randomChoice(Object.keys(DELTAS));
+        if (newDir === oldDir) continue;
+        board[spot.r][spot.c].dir = newDir;
+        if (!isSolvable(board)) board[spot.r][spot.c].dir = oldDir;
+      }
+
+      return board;
+    }
+
+    function isSolvable(board) {
+      const test = cloneBoard(board);
+      let remaining = countArrows(test);
+      let guard = remaining + 5;
+      while (remaining > 0 && guard-- > 0) {
+        let removedThisPass = 0;
+        for (let r = 0; r < test.length; r++) {
+          for (let c = 0; c < test.length; c++) {
+            if (test[r][c] && pathClear(test, r, c)) {
+              test[r][c] = null;
+              removedThisPass++;
+              remaining--;
+            }
+          }
+        }
+        if (removedThisPass === 0) return false;
+      }
+      return remaining === 0;
+    }
+
+    function countArrows(board) {
+      return board.flat().filter(Boolean).length;
+    }
+
+    function startLevel(level, useExisting = false) {
+      state.level = level;
+      state.hearts = 3;
+      state.taps = 0;
+      state.misses = 0;
+      state.hintsUsed = 0;
+      state.hintCell = null;
+      state.startedAt = Date.now();
+      el.overlay.classList.remove("show");
+
+      if (!useExisting) {
+        state.board = generateLevel(level);
+        state.initialBoard = cloneBoard(state.board);
+      } else {
+        state.board = cloneBoard(state.initialBoard);
+      }
+
+      state.size = state.board.length;
+      render();
+      startTimer();
+    }
+
+    function startTimer() {
+      clearInterval(state.timerHandle);
+      state.timerHandle = setInterval(updateTimer, 300);
+      updateTimer();
+    }
+
+    function secondsElapsed() {
+      return Math.floor((Date.now() - state.startedAt) / 1000);
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    function updateTimer() {
+      el.timer.textContent = formatTime(secondsElapsed());
+    }
+
+    function render() {
+      el.levelText.textContent = `Level ${state.level}`;
+      el.progressText.textContent = `${countArrows(state.board)} arrows remaining`;
+      el.hearts.textContent = "❤️".repeat(state.hearts) + "♡".repeat(3 - state.hearts);
+      el.taps.textContent = state.taps;
+      el.misses.textContent = state.misses;
+      el.redoBtn.classList.toggle("hidden", state.hearts > 0);
+      el.board.style.gridTemplateColumns = `repeat(${state.size}, 1fr)`;
+      el.board.innerHTML = "";
+
+      for (let r = 0; r < state.size; r++) {
+        for (let c = 0; c < state.size; c++) {
+          const cell = state.board[r][c];
+          const btn = document.createElement("button");
+          btn.className = "cell";
+          btn.dataset.r = r;
+          btn.dataset.c = c;
+          if (!cell) {
+            btn.classList.add("empty");
+            btn.textContent = "";
+            btn.disabled = true;
+          } else {
+            btn.textContent = ARROWS[cell.dir];
+            btn.setAttribute("aria-label", `${cell.dir} arrow`);
+            btn.addEventListener("click", () => tapCell(r, c, btn));
+            if (state.hintCell && state.hintCell.r === r && state.hintCell.c === c) {
+              btn.classList.add("hint");
+            }
+          }
+          el.board.appendChild(btn);
+        }
+      }
+    }
+
+    function tapCell(r, c, btn) {
+      const cell = state.board[r][c];
+      if (!cell) return;
+
+      state.taps++;
+      if (pathClear(state.board, r, c)) {
+        btn.classList.add(EXIT_CLASS[cell.dir]);
+        state.board[r][c] = null;
+        if (state.hintCell && state.hintCell.r === r && state.hintCell.c === c) {
+          state.hintCell = null;
+        }
+
+        setTimeout(() => {
+          if (countArrows(state.board) === 0) completeLevel();
+          else render();
+        }, 240);
+      } else {
+        state.misses++;
+        btn.classList.remove("shake");
+        void btn.offsetWidth;
+        btn.classList.add("shake");
+        renderStatsOnly();
+      }
+    }
+
+    function renderStatsOnly() {
+      el.taps.textContent = state.taps;
+      el.misses.textContent = state.misses;
+    }
+
+    function useHint() {
+      if (state.hearts <= 0) return;
+      const valid = [];
+      for (let r = 0; r < state.size; r++) {
+        for (let c = 0; c < state.size; c++) {
+          if (state.board[r][c] && pathClear(state.board, r, c)) valid.push({ r, c });
+        }
+      }
+      if (!valid.length) return;
+
+      state.hearts--;
+      state.hintsUsed++;
+      state.hintCell = randomChoice(valid);
+      render();
+    }
+
+    function starRating(seconds) {
+      let stars = 3;
+      if (state.hintsUsed > 0) stars--;
+      if (state.misses > Math.max(2, state.level / 3)) stars--;
+      if (seconds > 25 + state.level * 3) stars--;
+      return Math.max(1, stars);
+    }
+
+    function completeLevel() {
+      clearInterval(state.timerHandle);
+      const seconds = secondsElapsed();
+      const stars = starRating(seconds);
+      const score = Math.max(100, 1000 + state.level * 75 - seconds * 8 - state.misses * 35 - state.hintsUsed * 100);
+
+      state.save.highestLevel = Math.max(state.save.highestLevel, state.level + 1);
+      state.save.bestStars[state.level] = Math.max(state.save.bestStars[state.level] || 0, stars);
+      state.save.totalCompleted++;
+      state.save.lifetimeHints += state.hintsUsed;
+      state.save.lifetimeTaps += state.taps;
+      saveGame();
+
+      el.stars.textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+      el.rTime.textContent = formatTime(seconds);
+      el.rTaps.textContent = state.taps;
+      el.rMisses.textContent = state.misses;
+      el.rHints.textContent = state.hintsUsed;
+      el.rScore.textContent = score;
+      el.rBest.textContent = "⭐".repeat(state.save.bestStars[state.level]);
+      el.overlay.classList.add("show");
+    }
+
+
+    function totalStarsEarned() {
+      return Object.values(state.save.bestStars || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+    }
+
+    function openMenu() {
+      clearInterval(state.timerHandle);
+      el.mHighest.textContent = state.save.highestLevel;
+      el.mStars.textContent = totalStarsEarned();
+      el.mCompleted.textContent = state.save.totalCompleted;
+
+      el.levelGrid.innerHTML = "";
+      const maxShown = Math.max(30, state.save.highestLevel + 5);
+
+      for (let i = 1; i <= maxShown; i++) {
+        const btn = document.createElement("button");
+        btn.className = "level-pick";
+        const unlocked = i <= state.save.highestLevel;
+        if (!unlocked) btn.classList.add("locked");
+
+        const best = state.save.bestStars[i] || 0;
+        btn.innerHTML = `<strong>${i}</strong><span>${best ? "⭐".repeat(best) : unlocked ? "—" : "🔒"}</span>`;
+
+        if (unlocked) {
+          btn.addEventListener("click", () => {
+            el.menuOverlay.classList.remove("show");
+            startLevel(i);
+          });
+        }
+
+        el.levelGrid.appendChild(btn);
+      }
+
+      el.menuOverlay.classList.add("show");
+    }
+
+    function closeMenu() {
+      el.menuOverlay.classList.remove("show");
+      startTimer();
+    }
+
+    function resetProgress() {
+      const confirmed = confirm("Reset all progress and start over at Level 1?");
+      if (!confirmed) return;
+
+      localStorage.removeItem("arrowEscapeSave");
+      state.save = {
+        highestLevel: 1,
+        bestStars: {},
+        totalCompleted: 0,
+        lifetimeHints: 0,
+        lifetimeTaps: 0
+      };
+
+      saveGame();
+      el.menuOverlay.classList.remove("show");
+      startLevel(1);
+    }
+
+    el.hintBtn.addEventListener("click", useHint);
+    el.redoBtn.addEventListener("click", () => startLevel(state.level, true));
+    el.nextBtn.addEventListener("click", () => startLevel(state.level + 1));
+    el.menuBtn.addEventListener("click", openMenu);
+    el.closeMenuBtn.addEventListener("click", closeMenu);
+    el.playHighestBtn.addEventListener("click", () => {
+      el.menuOverlay.classList.remove("show");
+      startLevel(state.save.highestLevel);
+    });
+    el.resetProgressBtn.addEventListener("click", resetProgress);
+
+    loadSave();
+    saveGame();
+    startLevel(state.level);
+  </script>
+</body>
+</html>
