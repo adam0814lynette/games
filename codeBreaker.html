@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Codebreaker</title>
+    <style>
+        /* Updated height to 100dvh to handle browser bars */
+        body { font-family: sans-serif; text-align: center; margin: 0; background: #f0f0f0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        #game { max-width: 400px; margin: 0 auto; background: white; width: 100%; display: flex; flex-direction: column; height: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        
+        h2 { margin: 10px 0; }
+        #setup { padding: 20px; }
+        
+        #logArea { flex-grow: 1; overflow-y: auto; padding: 10px 20px; display: flex; flex-direction: column; border-bottom: 2px solid #eee; background: #fafafa; }
+        #log { margin-top: auto; text-align: left; font-size: 18px; display: flex; flex-direction: column-reverse; }
+        .log-entry { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; }
+        
+        #controlsArea { padding: 10px 20px 20px; background: white; }
+        button { padding: 15px; font-size: 20px; border-radius: 8px; border: none; background: #007BFF; color: white; cursor: pointer; touch-action: manipulation; }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+        .keypad button { background: #333; font-weight: bold; padding: 12px; }
+        .controls { display: flex; gap: 10px; }
+        .controls button { flex: 1; }
+        
+        #currentGuess { font-size: 32px; letter-spacing: 8px; margin: 5px 0; color: #007BFF; }
+        .stats { display: flex; justify-content: space-between; font-weight: bold; color: #555; }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <h2>Codebreaker</h2>
+        
+        <div id="setup">
+            <label>Digits: <input type="number" id="digits" value="3" min="3" max="5" style="font-size:18px; padding:5px; width:50px; text-align:center;"></label>
+            <br><br>
+            <button onclick="startGame()" style="width: 100%;">Start Game</button>
+        </div>
+
+        <div id="playArea" style="display: none; height: 100%; flex-direction: column;">
+            
+            <div id="logArea">
+                <div id="log"></div>
+            </div>
+
+            <div id="controlsArea">
+                <div class="stats">
+                    <span>Attempts: <span id="attempts">10</span></span>
+                </div>
+                <h1 id="currentGuess">---</h1>
+                
+                <div class="keypad" id="keys"></div>
+                
+                <div class="controls">
+                    <button onclick="clearGuess()" style="background: #dc3545;">Clear</button>
+                    <button onclick="submitGuess()" style="background: #28a745;">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let secret = [], guess = [], length = 3, attempts = 10;
+
+        function startGame() {
+            length = parseInt(document.getElementById('digits').value);
+            secret = Array.from({length}, () => Math.floor(Math.random() * 10).toString());
+            attempts = 10;
+            guess = [];
+            
+            document.getElementById('setup').style.display = 'none';
+            const playArea = document.getElementById('playArea');
+            playArea.style.display = 'flex';
+            document.getElementById('log').innerHTML = '';
+            
+            updateUI();
+            buildKeypad();
+        }
+
+        function buildKeypad() {
+            const keys = document.getElementById('keys');
+            keys.innerHTML = '';
+            for (let i = 1; i <= 9; i++) keys.innerHTML += `<button onclick="addDigit('${i}')">${i}</button>`;
+            keys.innerHTML += `<button onclick="addDigit('0')" style="grid-column: 2;">0</button>`;
+        }
+
+        function addDigit(d) {
+            if (guess.length < length) guess.push(d);
+            updateUI();
+        }
+
+        function clearGuess() {
+            guess = [];
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('attempts').innerText = attempts;
+            document.getElementById('currentGuess').innerText = guess.join('') || '-'.repeat(length);
+        }
+
+        function submitGuess() {
+            if (guess.length !== length) return alert(`Please enter exactly ${length} digits.`);
+            
+            let gList = [...guess], sList = [...secret], feedback = [];
+            
+            for (let i = 0; i < length; i++) {
+                if (gList[i] === sList[i]) { feedback.push('🟢'); gList[i] = sList[i] = null; }
+            }
+            for (let i = 0; i < length; i++) {
+                if (gList[i] !== null && sList.includes(gList[i])) { feedback.push('🟡'); sList[sList.indexOf(gList[i])] = null; }
+            }
+            while (feedback.length < length) feedback.push('🔴');
+            feedback.sort((a, b) => ['🟢', '🟡', '🔴'].indexOf(a) - ['🟢', '🟡', '🔴'].indexOf(b));
+
+            document.getElementById('log').innerHTML += `<div class="log-entry"><span><strong>${guess.join('')}</strong></span> <span>${feedback.join('')}</span></div>`;
+            
+            if (guess.join('') === secret.join('')) {
+                setTimeout(() => { alert(`🎉 You cracked the code! It was ${secret.join('')}.`); location.reload(); }, 100);
+            } else if (--attempts === 0) {
+                setTimeout(() => { alert(`Game Over! The code was ${secret.join('')}.`); location.reload(); }, 100);
+            }
+            
+            guess = [];
+            updateUI();
+            
+            const logArea = document.getElementById('logArea');
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+    </script>
+</body>
+</html>
