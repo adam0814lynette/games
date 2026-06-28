@@ -533,6 +533,20 @@
       gap: 9px;
     }
 
+    .title-actions {
+      display: none;
+      gap: 9px;
+    }
+
+    .menu.title-screen .title-actions {
+      display: grid;
+    }
+
+    .menu.title-screen .menu-tabs,
+    .menu.title-screen .menu-actions {
+      display: none;
+    }
+
     .menu-tabs {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -794,6 +808,11 @@
     <div class="menu-card">
       <h2 id="menuTitle">Gem Smash</h2>
       <p id="menuProgress">Level 1 unlocked</p>
+      <div class="title-actions" id="titleActions">
+        <button class="primary" id="resumeBtn" type="button">Resume Level 1</button>
+        <button class="secondary" id="chooseLevelBtn" type="button">Choose Level</button>
+        <button class="secondary danger" id="titleClearDataBtn" type="button">Clear Data / Restart</button>
+      </div>
       <div class="menu-tabs">
         <button class="secondary menu-tab active" id="playTabBtn" type="button">Play</button>
         <button class="secondary menu-tab" id="levelsTabBtn" type="button">Levels</button>
@@ -884,6 +903,10 @@
       levelMeta: document.getElementById("levelMeta"),
       menu: document.getElementById("menu"),
       menuBtn: document.getElementById("menuBtn"),
+      titleActions: document.getElementById("titleActions"),
+      resumeBtn: document.getElementById("resumeBtn"),
+      chooseLevelBtn: document.getElementById("chooseLevelBtn"),
+      titleClearDataBtn: document.getElementById("titleClearDataBtn"),
       playTabBtn: document.getElementById("playTabBtn"),
       levelsTabBtn: document.getElementById("levelsTabBtn"),
       playPanel: document.getElementById("playPanel"),
@@ -1047,6 +1070,7 @@
       el.prevBtn.disabled = state.level <= 1 || state.busy;
       el.nextBtn.disabled = state.level >= state.unlocked || state.busy;
       el.menuProgress.textContent = `Level ${state.level} selected | ${completedCount()} complete | ${state.unlocked} unlocked`;
+      el.resumeBtn.textContent = `Resume Level ${state.level}`;
       renderObjective(cfg);
       renderBoard();
       renderLevelGrid();
@@ -1667,12 +1691,21 @@
 
     function openMenu() {
       clearHint();
+      el.menu.classList.remove("title-screen");
+      setMenuTab("play");
       el.menu.classList.add("open");
+      render();
+    }
+
+    function openTitleScreen() {
+      clearHint();
+      el.menu.classList.add("open", "title-screen");
       render();
     }
 
     function closeMenu() {
       el.menu.classList.remove("open");
+      el.menu.classList.remove("title-screen");
       queueHint();
     }
 
@@ -1695,7 +1728,7 @@
       state.hints = true;
       startLevel(1);
       setMenuTab("play");
-      openMenu();
+      openTitleScreen();
       toast("Progress cleared.");
     }
 
@@ -1740,6 +1773,13 @@
     el.board.addEventListener("touchend", onTouchEnd, { passive: false });
     el.board.addEventListener("click", onBoardTap);
     el.menuBtn.addEventListener("click", openMenu);
+    el.resumeBtn.addEventListener("click", closeMenu);
+    el.chooseLevelBtn.addEventListener("click", () => {
+      el.menu.classList.remove("title-screen");
+      setMenuTab("levels");
+      render();
+    });
+    el.titleClearDataBtn.addEventListener("click", resetProgress);
     el.playTabBtn.addEventListener("click", () => setMenuTab("play"));
     el.levelsTabBtn.addEventListener("click", () => setMenuTab("levels"));
     el.continueBtn.addEventListener("click", closeMenu);
@@ -1787,6 +1827,7 @@
 
     loadSave();
     startLevel(state.level);
+    openTitleScreen();
   </script>
 </body>
 </html>
