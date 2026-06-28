@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#101820" />
-  <title>Lynette's Smash</title>
+  <title>Gem Smash</title>
   <style>
     :root {
       color-scheme: dark;
@@ -16,7 +16,7 @@
       --gold: #ffd36a;
       --danger: #ff6b7f;
       --good: #6ce0a6;
-      --tile: clamp(30px, 9.1vw, 52px);
+      --tile: clamp(34px, min(calc((100vw - 54px) / 8), calc((100svh - 250px) / 8)), 66px);
       --gap: 4px;
       --board: calc(var(--tile) * 8 + var(--gap) * 7);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -53,12 +53,12 @@
     }
 
     .game {
-      width: min(100%, 480px);
+      width: min(100%, 620px);
       min-height: 100svh;
-      padding: max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+      padding: max(8px, env(safe-area-inset-top)) 8px max(10px, env(safe-area-inset-bottom));
       display: grid;
       grid-template-rows: auto auto 1fr auto;
-      gap: 10px;
+      gap: 8px;
       position: relative;
       isolation: isolate;
     }
@@ -90,9 +90,9 @@
 
     .topbar {
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px;
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
 
     .brand-row,
@@ -172,9 +172,9 @@
 
     .objective {
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 9px 10px;
       display: grid;
-      gap: 8px;
+      gap: 7px;
     }
 
     .objective-title {
@@ -193,6 +193,43 @@
       font-size: 14px;
       line-height: 1.3;
       min-height: 18px;
+    }
+
+    .objective-targets {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 5px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .objective-chip {
+      min-height: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 7px 3px 5px;
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255,255,255,0.09);
+      border: 1px solid rgba(255,255,255,0.13);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .gem-dot {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, var(--gem-light), var(--gem-mid) 48%, var(--gem-dark));
+      border: 1px solid rgba(255,255,255,0.72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.34), 0 2px 5px rgba(0,0,0,0.24);
+      transform: rotate(45deg);
+      flex: 0 0 auto;
     }
 
     .progress {
@@ -220,11 +257,11 @@
     }
 
     .board-wrap {
-      width: calc(var(--board) + 18px);
-      max-width: calc(100vw - 24px);
+      width: calc(var(--board) + 16px);
+      max-width: calc(100vw - 16px);
       aspect-ratio: 1;
       border-radius: 8px;
-      padding: 9px;
+      padding: 8px;
       position: relative;
       background:
         linear-gradient(145deg, rgba(255,255,255,0.13), transparent 26%),
@@ -690,7 +727,7 @@
     }
 
     @media (max-width: 374px) {
-      :root { --tile: clamp(30px, 8.9vw, 38px); }
+      :root { --tile: clamp(32px, calc((100vw - 54px) / 8), 39px); }
       h1 { font-size: 21px; }
       .pill { min-width: 68px; padding: 7px 8px; }
       .pill strong { font-size: 15px; }
@@ -707,10 +744,10 @@
   </style>
 </head>
 <body>
-  <main class="game" aria-label="Lynette's Smash match three game">
+  <main class="game" aria-label="Gem Smash match three game">
     <section class="topbar">
       <div class="brand-row">
-        <h1>Lynette's Smash</h1>
+        <h1>Gem Smash</h1>
         <div class="level-chip" id="levelChip">Level 1</div>
       </div>
       <div class="stat-row">
@@ -731,7 +768,7 @@
     <section class="objective" aria-live="polite">
       <div class="objective-title">
         <span>Objective</span>
-        <span id="targetLine">Ready</span>
+        <span class="objective-targets" id="targetLine">Ready</span>
       </div>
       <p class="objective-text" id="objectiveText"></p>
       <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
@@ -747,7 +784,7 @@
       <button class="secondary" id="prevBtn" type="button">Previous</button>
       <div class="level-status">
         <strong id="levelName">Crystal Start</strong>
-        <span id="levelMeta">100 levels available offline</span>
+        <span id="levelMeta">200 levels available offline</span>
       </div>
       <button class="primary" id="nextBtn" type="button">Next</button>
     </section>
@@ -755,7 +792,7 @@
 
   <div class="menu open" id="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
     <div class="menu-card">
-      <h2 id="menuTitle">Lynette's Smash</h2>
+      <h2 id="menuTitle">Gem Smash</h2>
       <p id="menuProgress">Level 1 unlocked</p>
       <div class="menu-tabs">
         <button class="secondary menu-tab active" id="playTabBtn" type="button">Play</button>
@@ -798,12 +835,13 @@
   <div class="landscape-block">
     <div>
       <strong>Portrait Only</strong>
-      <span>Rotate your device upright to play Lynette's Smash.</span>
+      <span>Rotate your device upright to play Gem Smash.</span>
     </div>
   </div>
 
   <script>
     const SIZE = 8;
+    const MAX_LEVELS = 200;
     const GEM_TYPES = [
       { id: "ruby", name: "Ruby", colors: ["#ff8793", "#ef2f59", "#9f1739"], shape: "hex" },
       { id: "topaz", name: "Topaz", colors: ["#ffe38d", "#f5a726", "#a85b08"], shape: "diamond" },
@@ -872,15 +910,15 @@
 
     function levelConfig(level) {
       const index = level - 1;
-      const palette = Math.min(6, 4 + Math.floor(index / 14));
-      const frost = Math.max(0, Math.floor((index - 4) / 3));
-      const moves = Math.max(16, 24 - Math.floor(index / 8));
-      const targetScore = 1500 + index * 185 + Math.floor(index / 10) * 520;
+      const palette = Math.min(6, 4 + Math.floor(index / 10));
+      const frost = Math.max(0, Math.floor((index - 3) / 2.5));
+      const moves = Math.max(15, 23 - Math.floor(index / 7) - Math.floor(index / 45));
+      const targetScore = 1700 + index * 145 + Math.floor(index / 8) * 520 + Math.floor(index * index * 0.35);
       const typeCycle = index % 5;
       const collectType = GEM_TYPES[index % palette].id;
       const collectTwo = GEM_TYPES[(index + 2) % palette].id;
-      const collectTarget = 14 + Math.floor(index * 0.82);
-      const frostTarget = Math.min(28, 8 + Math.floor(index * 0.62));
+      const collectTarget = Math.min(70, 16 + Math.floor(index * 1.02) + Math.floor(index / 18));
+      const frostTarget = Math.min(34, 9 + Math.floor(index * 0.7) + Math.floor(index / 18));
       let objective;
       if (typeCycle === 0) {
         objective = { kind: "score", targetScore };
@@ -899,7 +937,7 @@
         name: levelName(level),
         palette,
         moves,
-        frost: Math.min(28, frostCount),
+        frost: Math.min(34, frostCount),
         objective
       };
     }
@@ -912,7 +950,7 @@
     function loadSave() {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-        state.unlocked = Math.max(1, Math.min(100, saved.unlocked || 1));
+        state.unlocked = Math.max(1, Math.min(MAX_LEVELS, saved.unlocked || 1));
         state.level = Math.max(1, Math.min(state.unlocked, saved.level || 1));
         state.sound = saved.sound !== false;
         state.hints = saved.hints !== false;
@@ -935,7 +973,7 @@
     }
 
     function startLevel(level = state.level) {
-      state.level = Math.max(1, Math.min(100, level));
+      state.level = Math.max(1, Math.min(MAX_LEVELS, level));
       const cfg = levelConfig(state.level);
       state.moves = cfg.moves;
       state.startMoves = cfg.moves;
@@ -1005,7 +1043,7 @@
       el.moves.textContent = state.moves;
       el.score.textContent = state.score;
       el.levelName.textContent = cfg.name;
-      el.levelMeta.textContent = `${state.unlocked} unlocked / 100 levels`;
+      el.levelMeta.textContent = `${state.unlocked} unlocked / ${MAX_LEVELS} levels`;
       el.prevBtn.disabled = state.level <= 1 || state.busy;
       el.nextBtn.disabled = state.level >= state.unlocked || state.busy;
       el.menuProgress.textContent = `Level ${state.level} selected | ${completedCount()} complete | ${state.unlocked} unlocked`;
@@ -1018,15 +1056,15 @@
     function renderObjective(cfg) {
       const objective = cfg.objective;
       const parts = [];
-      if (objective.targetScore) parts.push(`${Math.min(state.score, objective.targetScore).toLocaleString()} / ${objective.targetScore.toLocaleString()} score`);
-      if (objective.frostTarget) parts.push(`${state.stats.frostCleared || 0} / ${objective.frostTarget} frost`);
+      if (objective.targetScore) parts.push(statusChip(`${Math.min(state.score, objective.targetScore).toLocaleString()} / ${objective.targetScore.toLocaleString()} score`));
+      if (objective.frostTarget) parts.push(statusChip(`${state.stats.frostCleared || 0} / ${objective.frostTarget} frost`));
       if (objective.collect) {
         for (const [type, target] of Object.entries(objective.collect)) {
-          parts.push(`${state.stats.collected[type] || 0} / ${target} ${gemName(type)}`);
+          parts.push(targetChip(type, `${state.stats.collected[type] || 0} / ${target} ${gemName(type)}`));
         }
       }
-      el.targetLine.textContent = parts.join(" | ");
-      el.objectiveText.textContent = objectiveText(objective);
+      el.targetLine.innerHTML = parts.join("");
+      el.objectiveText.innerHTML = objectiveText(objective);
       el.progressBar.style.width = `${Math.round(progressFor(objective) * 100)}%`;
     }
 
@@ -1062,7 +1100,7 @@
 
     function renderLevelGrid() {
       let html = "";
-      for (let level = 1; level <= 100; level++) {
+      for (let level = 1; level <= MAX_LEVELS; level++) {
         const result = state.completions[String(level)];
         const unlocked = level <= state.unlocked;
         const classes = [
@@ -1091,11 +1129,28 @@
     }
 
     function collectText(collect) {
-      return Object.entries(collect).map(([type, target]) => `${target} ${gemName(type)}`).join(" and ");
+      return Object.entries(collect).map(([type, target]) => `${target} ${gemName(type)} ${gemSwatch(type)}`).join(" and ");
     }
 
     function gemName(type) {
       return GEM_TYPES.find(g => g.id === type)?.name || type;
+    }
+
+    function gemData(type) {
+      return GEM_TYPES.find(g => g.id === type) || GEM_TYPES[0];
+    }
+
+    function targetChip(type, label) {
+      return `<span class="objective-chip">${gemSwatch(type)}${label}</span>`;
+    }
+
+    function statusChip(label) {
+      return `<span class="objective-chip">${label}</span>`;
+    }
+
+    function gemSwatch(type) {
+      const gem = gemData(type);
+      return `<span class="gem-dot" aria-label="${gem.name} color" style="--gem-light:${gem.colors[0]};--gem-mid:${gem.colors[1]};--gem-dark:${gem.colors[2]}"></span>`;
     }
 
     function progressFor(objective) {
@@ -1542,7 +1597,7 @@
       const cfg = levelConfig(state.level);
       if (objectiveMet(cfg.objective)) {
         state.levelDone = true;
-        state.unlocked = Math.max(state.unlocked, Math.min(100, state.level + 1));
+        state.unlocked = Math.max(state.unlocked, Math.min(MAX_LEVELS, state.level + 1));
         recordCompletion();
         save();
         showResult(true, cfg);
@@ -1578,7 +1633,7 @@
         <div class="result-row"><strong>Biggest Smash</strong><span>${state.stats.biggestSmash || 0} gems</span></div>
         <div class="result-row"><strong>Best Chain</strong><span>${state.stats.bestChain || 0}x</span></div>
       `;
-      el.modalNext.textContent = won ? state.level < 100 ? "Continue" : "Finish" : "Retry";
+      el.modalNext.textContent = won ? state.level < MAX_LEVELS ? "Continue" : "Finish" : "Retry";
       el.modal.classList.add("open");
       tickSound(won ? 720 : 180, 0.08);
       render();
@@ -1631,7 +1686,7 @@
     }
 
     function resetProgress() {
-      if (!confirm("Clear all Lynette's Smash progress and restart from Level 1?")) return;
+      if (!confirm("Clear all Gem Smash progress and restart from Level 1?")) return;
       localStorage.removeItem(STORAGE_KEY);
       state.level = 1;
       state.unlocked = 1;
@@ -1722,7 +1777,7 @@
     });
     el.modalReplay.addEventListener("click", () => startLevel(state.level));
     el.modalNext.addEventListener("click", () => {
-      if (objectiveMet(levelConfig(state.level).objective) && state.level < 100) startLevel(state.level + 1);
+      if (objectiveMet(levelConfig(state.level).objective) && state.level < MAX_LEVELS) startLevel(state.level + 1);
       else if (objectiveMet(levelConfig(state.level).objective)) {
         el.modal.classList.remove("open");
         openMenu();
