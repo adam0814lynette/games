@@ -945,6 +945,7 @@
       { id: "opal", name: "Opal", colors: ["#fcffff", "#7fdbe7", "#407c93"], shape: "round" }
     ];
     const STORAGE_KEY = "lynettes-smash-save-v1";
+    const BOOSTER_TYPES = ["hammer", "shuffle", "line"];
     let nextGemId = 1;
     const state = {
       level: 1,
@@ -961,6 +962,8 @@
       stats: {},
       failures: {},
       boosters: { hammer: 0, shuffle: 0, line: 0 },
+      inventory: { hammer: 0, shuffle: 0, line: 0 },
+      assistBoosters: { hammer: 0, shuffle: 0, line: 0 },
       activeBooster: null,
       frost: [],
       hintTimer: null,
@@ -1063,11 +1066,13 @@
         state.hints = saved.hints !== false;
         state.completions = saved.completions && typeof saved.completions === "object" ? saved.completions : {};
         state.failures = saved.failures && typeof saved.failures === "object" ? saved.failures : {};
+        state.inventory = normalizeBoosters(saved.inventory);
       } catch {
         state.level = 1;
         state.unlocked = 1;
         state.completions = {};
         state.failures = {};
+        state.inventory = { hammer: 0, shuffle: 0, line: 0 };
       }
     }
 
@@ -1078,8 +1083,26 @@
         sound: state.sound,
         hints: state.hints,
         completions: state.completions,
-        failures: state.failures
+        failures: state.failures,
+        inventory: state.inventory
       }));
+    }
+
+    function normalizeBoosters(source) {
+      const boosters = { hammer: 0, shuffle: 0, line: 0 };
+      if (!source || typeof source !== "object") return boosters;
+      for (const type of BOOSTER_TYPES) {
+        boosters[type] = Math.max(0, Number(source[type]) || 0);
+      }
+      return boosters;
+    }
+
+    function combinedBoosters(assist) {
+      const boosters = {};
+      for (const type of BOOSTER_TYPES) {
+        boosters[type] = (state.inventory[type] || 0) + (assist[type] || 0);
+      }
+      return boosters;
     }
 
     function startLevel(level = state.level) {
@@ -1090,7 +1113,8 @@
       state.startMoves = state.moves;
       state.score = 0;
       state.stats = { collected: {}, frostCleared: 0, gemsCleared: 0, bestChain: 0, biggestSmash: 0 };
-      state.boosters = { hammer: assist.hammer, shuffle: assist.shuffle, line: assist.line };
+      state.assistBoosters = { hammer: assist.hammer, shuffle: assist.shuffle, line: assist.line };
+      state.boosters = combinedBoosters(state.assistBoosters);
       state.activeBooster = null;
       state.frost = makeFrost(cfg.frost);
       state.selected = null;
@@ -1108,20 +1132,24 @@
 
     function retryAssist(level) {
       const failures = state.failures[String(level)] || 0;
+      const extraMoves = Math.max(failures >= 2 ? 3 : 0, Math.floor(failures / 3) * 3);
       return {
-        moves: failures >= 2 ? 3 : 0,
+        moves: extraMoves,
         hammer: failures >= 4 ? 1 : 0,
         shuffle: failures >= 6 ? 1 : 0,
         line: failures >= 8 ? 1 : 0,
-        message: assistMessage(failures)
+        message: assistMessage(failures, extraMoves)
       };
     }
 
-    function assistMessage(failures) {
-      if (failures >= 8) return "Retry assist: +3 moves, Hammer, Shuffle, and Blast.";
-      if (failures >= 6) return "Retry assist: +3 moves, Hammer, and Shuffle.";
-      if (failures >= 4) return "Retry assist: +3 moves and Hammer.";
-      if (failures >= 2) return "Retry assist: +3 moves.";
+    function assistMessage(failures, extraMoves) {
+      if (!extraMoves && failures < 4) return "";
+      const parts = [];
+      if (extraMoves) parts.push(`+${extraMoves} moves`);
+      if (failures >= 4) parts.push("Hammer");
+      if (failures >= 6) parts.push("Shuffle");
+      if (failures >= 8) parts.push("Blast");
+      if (parts.length) return `Retry assist: ${parts.join(", ")}.`;
       return "";
     }
 
@@ -1189,7 +1217,7 @@
     }
 
     function renderBoosters() {
-      for (const type of ["hammer", "shuffle", "line"]) {
+      for (const type of BOOSTER_TYPES) {
         const button = el[`${type}Btn`];
         const count = state.boosters[type] || 0;
         button.classList.toggle("active", state.activeBooster === type);
@@ -1226,6 +1254,7 @@
 
     function recordCompletion() {
       const level = String(state.level);
+      const previous = state.completions[level];
       const result = {
         level: state.level,
         stars: resultStars(),
@@ -1237,11 +1266,43 @@
         bestChain: state.stats.bestChain || 0,
         completedAt: new Date().toISOString()
       };
-      const previous = state.completions[level];
+      const previousStars = previous?.stars || 0;
+      const reward = completionReward(state.level, previousStars, result.stars);
       if (!previous || result.stars > previous.stars || (result.stars === previous.stars && result.score > previous.score)) {
         state.completions[level] = result;
       }
+      addReward(reward);
       state.failures[level] = 0;
+      return reward;
+    }
+
+    function completionReward(level, previousStars, stars) {
+      const reward = { hammer: 0, shuffle: 0, line: 0 };
+      if (stars <= previousStars) return reward;
+      for (let star = previousStars + 1; star <= stars; star++) {
+        if (star === 2) reward.hammer++;
+        if (star === 3) reward.shuffle++;
+      }
+      if (previousStars === 0) {
+        if (level % 5 === 0) reward.hammer++;
+        if (level % 10 === 0) reward.line++;
+      }
+      return reward;
+    }
+
+    function addReward(reward) {
+      for (const type of BOOSTER_TYPES) {
+        state.inventory[type] = (state.inventory[type] || 0) + (reward[type] || 0);
+      }
+      state.boosters = combinedBoosters(state.assistBoosters);
+    }
+
+    function rewardText(reward) {
+      const names = { hammer: "Hammer", shuffle: "Shuffle", line: "Blast" };
+      const parts = BOOSTER_TYPES
+        .filter(type => reward?.[type])
+        .map(type => `${reward[type]} ${names[type]}`);
+      return parts.length ? parts.join(", ") : "";
     }
 
     function renderLevelGrid() {
@@ -1548,7 +1609,11 @@
       state.busy = true;
       state.selected = null;
       state.activeBooster = null;
-      state.boosters[type]--;
+      if (!spendBooster(type)) {
+        state.busy = false;
+        render();
+        return;
+      }
       renderBoosters();
       clearHint();
       const cells = type === "line" ? lineBlastCells(x, y) : [{ x, y }];
@@ -1761,7 +1826,11 @@
       state.busy = true;
       state.selected = null;
       state.activeBooster = null;
-      state.boosters.shuffle--;
+      if (!spendBooster("shuffle")) {
+        state.busy = false;
+        render();
+        return;
+      }
       clearHint();
       shuffleBoard();
       tickSound(600, 0.05);
@@ -1770,6 +1839,20 @@
       state.busy = false;
       render();
       queueHint();
+    }
+
+    function spendBooster(type) {
+      if ((state.boosters[type] || 0) <= 0) return false;
+      if ((state.assistBoosters[type] || 0) > 0) {
+        state.assistBoosters[type]--;
+      } else if ((state.inventory[type] || 0) > 0) {
+        state.inventory[type]--;
+        save();
+      } else {
+        return false;
+      }
+      state.boosters[type]--;
+      return true;
     }
 
     function findPossibleMove() {
@@ -1806,14 +1889,14 @@
       if (objectiveMet(cfg.objective)) {
         state.levelDone = true;
         state.unlocked = Math.max(state.unlocked, Math.min(MAX_LEVELS, state.level + 1));
-        recordCompletion();
+        const reward = recordCompletion();
         save();
-        showResult(true, cfg);
+        showResult(true, cfg, reward);
       } else if (state.moves <= 0) {
         state.levelDone = true;
         recordFailure();
         save();
-        showResult(false, cfg);
+        showResult(false, cfg, null);
       }
     }
 
@@ -1833,18 +1916,20 @@
       return true;
     }
 
-    function showResult(won, cfg) {
+    function showResult(won, cfg, reward) {
       const movesUsed = state.startMoves - state.moves;
       const stars = won ? resultStars() : 0;
       const best = state.completions[String(state.level)];
       const assist = retryAssist(state.level);
+      const earned = rewardText(reward);
       el.modalTitle.textContent = won ? "Level Complete" : "Try Again";
       el.modalText.textContent = won
-        ? `${"★".repeat(stars)}${"☆".repeat(3 - stars)} Level ${state.level} cleared.${best?.score === state.score ? " New best result." : ""}`
+        ? `${"★".repeat(stars)}${"☆".repeat(3 - stars)} Level ${state.level} cleared.${best?.score === state.score ? " New best result." : ""}${earned ? ` Earned: ${earned}.` : ""}`
         : `You ran out of moves before finishing the objective.${assist.message ? ` ${assist.message}` : ""}`;
       el.modalStats.innerHTML = `
         <div class="result-row"><strong>Score</strong><span>${state.score.toLocaleString()}</span></div>
         <div class="result-row"><strong>Moves Used</strong><span>${movesUsed} of ${state.startMoves}</span></div>
+        ${earned ? `<div class="result-row"><strong>Reward</strong><span>${earned}</span></div>` : ""}
         <div class="result-row"><strong>Gems Smashed</strong><span>${state.stats.gemsCleared || 0}</span></div>
         <div class="result-row"><strong>Biggest Smash</strong><span>${state.stats.biggestSmash || 0} gems</span></div>
         <div class="result-row"><strong>Best Chain</strong><span>${state.stats.bestChain || 0}x</span></div>
@@ -1917,6 +2002,9 @@
       state.unlocked = 1;
       state.completions = {};
       state.failures = {};
+      state.inventory = { hammer: 0, shuffle: 0, line: 0 };
+      state.assistBoosters = { hammer: 0, shuffle: 0, line: 0 };
+      state.boosters = { hammer: 0, shuffle: 0, line: 0 };
       state.sound = true;
       state.hints = true;
       startLevel(1);
