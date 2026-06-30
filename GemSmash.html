@@ -1020,9 +1020,9 @@
 
     function levelConfig(level) {
       const index = level - 1;
-      const palette = index < 40 ? 4 : index < 100 ? 5 : 6;
-      const moves = Math.max(22, 28 - Math.floor(index / 32) - Math.floor(index / 110));
-      const frost = Math.max(0, Math.min(16, Math.floor((index - 8) / 6)));
+      const palette = index < 20 ? 4 : index < 80 ? 5 : 6;
+      const moves = Math.max(20, 26 - Math.floor(index / 28) - Math.floor(index / 110));
+      const frost = Math.max(0, Math.min(18, Math.floor((index - 4) / 5)));
       const targetScore = scoreTarget(index, moves);
       const typeCycle = index % 5;
       const collectType = GEM_TYPES[index % palette].id;
@@ -1037,9 +1037,9 @@
       } else if (typeCycle === 2) {
         objective = { kind: "frost", frostTarget };
       } else if (typeCycle === 3) {
-        objective = { kind: "scoreCollect", targetScore: Math.round(targetScore * 0.74), collect: { [collectType]: Math.max(7, collectTarget - 3) } };
+        objective = { kind: "scoreCollect", targetScore: Math.round(targetScore * 0.82), collect: { [collectType]: Math.max(12, collectTarget - 2) } };
       } else {
-        objective = { kind: "doubleCollect", collect: { [collectType]: Math.max(7, collectTarget - 4), [collectTwo]: Math.max(6, collectTarget - 6) } };
+        objective = { kind: "doubleCollect", collect: { [collectType]: Math.max(12, collectTarget - 1), [collectTwo]: Math.max(10, collectTarget - 3) } };
       }
       const frostCount = objective.frostTarget ? objective.frostTarget : frost;
       return {
@@ -1053,21 +1053,23 @@
     }
 
     function collectionTarget(index, moves, palette) {
-      const palettePressure = palette === 4 ? 0.72 : palette === 5 ? 0.62 : 0.56;
-      const rawTarget = 14 + Math.floor(index * 0.12) + Math.floor(index / 45);
-      const moveBudgetTarget = Math.round(moves * palettePressure + index * 0.016);
-      return Math.min(27, rawTarget, moveBudgetTarget);
+      const palettePressure = palette === 4 ? 0.9 : palette === 5 ? 0.82 : 0.74;
+      const rawTarget = 19 + Math.floor(index * 0.16) + Math.floor(index / 35);
+      const moveBudgetTarget = Math.round(moves * palettePressure + index * 0.025);
+      const levelFloor = index < 20 ? 18 : index < 80 ? 22 : index < 140 ? 25 : 28;
+      return Math.min(34, Math.max(levelFloor, Math.min(rawTarget, moveBudgetTarget)));
     }
 
     function frostObjectiveTarget(index, moves) {
-      const rawTarget = 8 + Math.floor(index * 0.16);
-      const moveBudgetTarget = Math.round(moves * 0.72 + index * 0.012);
-      return Math.min(22, rawTarget, moveBudgetTarget);
+      const rawTarget = 9 + Math.floor(index * 0.17);
+      const moveBudgetTarget = Math.round(moves * 0.78 + index * 0.018);
+      const levelFloor = index < 20 ? 8 : index < 80 ? 12 : index < 140 ? 16 : 18;
+      return Math.min(26, Math.max(levelFloor, Math.min(rawTarget, moveBudgetTarget)));
     }
 
     function scoreTarget(index, moves) {
-      const rawTarget = 1800 + index * 75 + Math.floor(index / 10) * 180;
-      const moveBudgetTarget = moves * 620 + index * 25;
+      const rawTarget = 2700 + index * 115 + Math.floor(index / 10) * 270;
+      const moveBudgetTarget = moves * 930 + index * 38;
       return Math.round(Math.min(rawTarget, moveBudgetTarget));
     }
 
