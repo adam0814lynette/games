@@ -1021,7 +1021,7 @@
     function levelConfig(level) {
       const index = level - 1;
       const palette = index < 40 ? 4 : index < 100 ? 5 : 6;
-      const moves = Math.max(24, 30 - Math.floor(index / 35) - Math.floor(index / 120));
+      const moves = Math.max(22, 28 - Math.floor(index / 32) - Math.floor(index / 110));
       const frost = Math.max(0, Math.min(16, Math.floor((index - 8) / 6)));
       const targetScore = scoreTarget(index, moves);
       const typeCycle = index % 5;
@@ -1037,7 +1037,7 @@
       } else if (typeCycle === 2) {
         objective = { kind: "frost", frostTarget };
       } else if (typeCycle === 3) {
-        objective = { kind: "scoreCollect", targetScore: Math.round(targetScore * 0.68), collect: { [collectType]: Math.max(7, collectTarget - 3) } };
+        objective = { kind: "scoreCollect", targetScore: Math.round(targetScore * 0.74), collect: { [collectType]: Math.max(7, collectTarget - 3) } };
       } else {
         objective = { kind: "doubleCollect", collect: { [collectType]: Math.max(7, collectTarget - 4), [collectTwo]: Math.max(6, collectTarget - 6) } };
       }
@@ -1053,21 +1053,21 @@
     }
 
     function collectionTarget(index, moves, palette) {
-      const palettePressure = palette === 4 ? 0.62 : palette === 5 ? 0.54 : 0.48;
-      const rawTarget = 12 + Math.floor(index * 0.08) + Math.floor(index / 50);
-      const moveBudgetTarget = Math.round(moves * palettePressure + index * 0.012);
-      return Math.min(22, rawTarget, moveBudgetTarget);
+      const palettePressure = palette === 4 ? 0.72 : palette === 5 ? 0.62 : 0.56;
+      const rawTarget = 14 + Math.floor(index * 0.12) + Math.floor(index / 45);
+      const moveBudgetTarget = Math.round(moves * palettePressure + index * 0.016);
+      return Math.min(27, rawTarget, moveBudgetTarget);
     }
 
     function frostObjectiveTarget(index, moves) {
-      const rawTarget = 7 + Math.floor(index * 0.12);
-      const moveBudgetTarget = Math.round(moves * 0.62 + index * 0.01);
-      return Math.min(18, rawTarget, moveBudgetTarget);
+      const rawTarget = 8 + Math.floor(index * 0.16);
+      const moveBudgetTarget = Math.round(moves * 0.72 + index * 0.012);
+      return Math.min(22, rawTarget, moveBudgetTarget);
     }
 
     function scoreTarget(index, moves) {
-      const rawTarget = 1400 + index * 45 + Math.floor(index / 12) * 140;
-      const moveBudgetTarget = moves * 500 + index * 15;
+      const rawTarget = 1800 + index * 75 + Math.floor(index / 10) * 180;
+      const moveBudgetTarget = moves * 620 + index * 25;
       return Math.round(Math.min(rawTarget, moveBudgetTarget));
     }
 
