@@ -1,0 +1,1772 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#2b2630" />
+  <title>Journey Road</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f3dfb6;
+      --ink: #2b2630;
+      --muted: #73675d;
+      --line: #3b3130;
+      --red: #c94f3d;
+      --teal: #168d8d;
+      --gold: #d99b2b;
+      --green: #587d3e;
+      --blue: #4d6e9a;
+      --cream: #fff4d5;
+      --shadow: rgba(43, 38, 48, 0.23);
+      --radius: 8px;
+      font-family: "Trebuchet MS", ui-rounded, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        linear-gradient(90deg, rgba(43,38,48,.05) 1px, transparent 1px),
+        linear-gradient(rgba(43,38,48,.04) 1px, transparent 1px),
+        #ead19b;
+      background-size: 18px 18px;
+      color: var(--ink);
+    }
+
+    body {
+      min-height: 100svh;
+      touch-action: manipulation;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button {
+      min-height: 42px;
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--cream);
+      color: var(--ink);
+      box-shadow: 0 3px 0 var(--line);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--line);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+      transform: none;
+    }
+
+    select,
+    input {
+      width: 100%;
+      min-height: 38px;
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff8df;
+      color: var(--ink);
+      padding: 6px 8px;
+      font-weight: 800;
+    }
+
+    .app {
+      width: min(100%, 1180px);
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: max(10px, env(safe-area-inset-top)) 10px max(12px, env(safe-area-inset-bottom));
+      display: grid;
+      gap: 10px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: grid;
+      gap: 10px;
+    }
+
+    .masthead,
+    .panel,
+    .board-panel,
+    .ledger,
+    .turn-card,
+    .modal-card {
+      border: 3px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 8px 0 rgba(43, 38, 48, .18);
+    }
+
+    .masthead {
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background:
+        radial-gradient(circle at 18px 18px, rgba(255,255,255,.55) 0 5px, transparent 6px),
+        linear-gradient(135deg, #f8d06b, #e88d4e 45%, #63a6a8);
+      background-size: auto, 100% 100%;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(30px, 8vw, 58px);
+      line-height: .9;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 #fff3cf, 4px 4px 0 rgba(43, 38, 48, .22);
+    }
+
+    .subtitle {
+      color: #2f3434;
+      font-size: 14px;
+      font-weight: 900;
+      max-width: 490px;
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .panel h2 {
+      font-size: 20px;
+      text-transform: uppercase;
+    }
+
+    .player-setup {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .slot {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff0c4;
+      padding: 8px;
+    }
+
+    .swatch {
+      width: 18px;
+      height: 100%;
+      min-height: 80px;
+      border: 2px solid var(--line);
+      border-radius: 5px;
+    }
+
+    .slot-fields {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 7px;
+    }
+
+    label {
+      display: grid;
+      gap: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .start-btn {
+      background: #f4bd45;
+    }
+
+    .setup-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 800;
+    }
+
+    .game-layout {
+      grid-template-columns: minmax(0, 1fr) 330px;
+      align-items: start;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff4d5;
+      padding: 5px 8px;
+      font-weight: 900;
+      box-shadow: 0 2px 0 rgba(43, 38, 48, .2);
+    }
+
+    .board-panel {
+      padding: 8px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.35), transparent 38%),
+        #c8d6a2;
+      overflow: hidden;
+    }
+
+    .board {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1.22 / 1;
+      min-height: 510px;
+      border: 3px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        radial-gradient(circle at 17% 22%, rgba(255,255,255,.42) 0 9%, transparent 10%),
+        radial-gradient(circle at 79% 68%, rgba(255,255,255,.32) 0 12%, transparent 13%),
+        linear-gradient(45deg, rgba(43,38,48,.05) 25%, transparent 25% 50%, rgba(43,38,48,.05) 50% 75%, transparent 75%),
+        #a8c986;
+      background-size: auto, auto, 32px 32px, auto;
+    }
+
+    .landmark {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      border: 3px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff0c4;
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      text-align: center;
+      text-transform: uppercase;
+      box-shadow: 0 4px 0 rgba(43,38,48,.2);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .landmark::before {
+      content: "";
+      width: 26px;
+      height: 16px;
+      margin-bottom: 3px;
+      border: 2px solid var(--line);
+      background: currentColor;
+    }
+
+    .landmark.school {
+      left: 8%;
+      top: 31%;
+      width: 76px;
+      height: 54px;
+      color: #4d6e9a;
+    }
+
+    .landmark.bank {
+      right: 8%;
+      top: 17%;
+      width: 72px;
+      height: 54px;
+      color: #587d3e;
+    }
+
+    .landmark.home {
+      left: 14%;
+      bottom: 13%;
+      width: 78px;
+      height: 56px;
+      color: #c94f3d;
+    }
+
+    .landmark.park {
+      right: 12%;
+      bottom: 18%;
+      width: 72px;
+      height: 54px;
+      color: #168d8d;
+    }
+
+    .road-line {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .space {
+      position: absolute;
+      width: clamp(38px, 5.7vw, 58px);
+      aspect-ratio: 1;
+      translate: -50% -50%;
+      display: grid;
+      place-items: center;
+      border: 3px solid var(--line);
+      border-radius: 8px;
+      background: #fff4d5;
+      color: var(--ink);
+      font-size: 17px;
+      font-weight: 900;
+      box-shadow: 0 4px 0 rgba(43,38,48,.22);
+    }
+
+    .space.start { background: #f4bd45; }
+    .space.payday { background: #8cc06b; }
+    .space.career { background: #66b3a6; }
+    .space.event { background: #ef875d; }
+    .space.home { background: #d7b269; }
+    .space.family { background: #df8fa8; }
+    .space.choice { background: #76a3d7; }
+    .space.finish { background: #f5df62; }
+
+    .space-label {
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 2px);
+      translate: -50% 0;
+      width: 70px;
+      text-align: center;
+      font-size: 9px;
+      line-height: 1;
+      text-transform: uppercase;
+      color: #352d2d;
+      font-weight: 900;
+      text-shadow: 1px 1px 0 rgba(255,255,255,.7);
+    }
+
+    .piece {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      translate: -50% -50%;
+      z-index: 10;
+      box-shadow: 0 2px 0 rgba(43,38,48,.28);
+      transition: left .25s ease, top .25s ease;
+    }
+
+    .piece::after {
+      content: attr(data-initial);
+      position: absolute;
+      inset: -13px -4px auto;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--ink);
+      text-shadow: 1px 1px 0 #fff4d5;
+    }
+
+    .turn-card {
+      padding: 10px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .current-player {
+      display: grid;
+      grid-template-columns: 16px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .current-dot {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+    }
+
+    .spinner {
+      display: grid;
+      place-items: center;
+      width: min(100%, 160px);
+      aspect-ratio: 1;
+      margin: 0 auto;
+      border: 5px solid var(--line);
+      border-radius: 50%;
+      background:
+        conic-gradient(#c94f3d 0 60deg, #f4bd45 60deg 120deg, #168d8d 120deg 180deg, #df8fa8 180deg 240deg, #587d3e 240deg 300deg, #76a3d7 300deg 360deg);
+      box-shadow: inset 0 0 0 8px rgba(255,255,255,.45), 0 5px 0 rgba(43,38,48,.22);
+      position: relative;
+      transform: rotate(var(--spin, 0deg));
+      transition: transform .6s cubic-bezier(.2,.9,.2,1.2);
+    }
+
+    .spinner::before {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 48%;
+      top: 8%;
+      left: calc(50% - 5px);
+      background: var(--line);
+      border-radius: 999px;
+      transform-origin: 50% 92%;
+    }
+
+    .spin-value {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border: 3px solid var(--line);
+      border-radius: 50%;
+      background: #fff4d5;
+      z-index: 1;
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .actions {
+      display: grid;
+      gap: 8px;
+    }
+
+    .turn-status {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .status-tile,
+    .happening,
+    .next-player {
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff8df;
+      padding: 8px;
+    }
+
+    .status-tile small,
+    .happening small,
+    .next-player small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .status-tile strong,
+    .next-player strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .happening {
+      display: grid;
+      gap: 4px;
+      background: #ffe9ae;
+      box-shadow: inset 0 0 0 3px rgba(244, 189, 69, .35);
+    }
+
+    .happening strong {
+      display: block;
+      font-size: 17px;
+      line-height: 1.15;
+    }
+
+    .happening p {
+      color: #4d4038;
+      font-size: 13px;
+      line-height: 1.3;
+      font-weight: 800;
+    }
+
+    .next-player {
+      display: grid;
+      grid-template-columns: 13px minmax(0, 1fr);
+      gap: 7px;
+      align-items: center;
+    }
+
+    .next-player small,
+    .next-player strong {
+      grid-column: 2;
+    }
+
+    .next-dot {
+      grid-row: 1 / span 2;
+      width: 13px;
+      height: 13px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+    }
+
+    .primary {
+      background: #f4bd45;
+    }
+
+    .danger {
+      background: #e78061;
+    }
+
+    .log {
+      min-height: 84px;
+      max-height: 126px;
+      overflow: auto;
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff8df;
+      padding: 8px;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 800;
+    }
+
+    .log p + p {
+      margin-top: 5px;
+    }
+
+    .ledger {
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .player-card {
+      display: grid;
+      gap: 5px;
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff0c4;
+      padding: 8px;
+      opacity: .92;
+    }
+
+    .player-card.active {
+      background: #fff8df;
+      box-shadow: inset 0 0 0 3px #f4bd45;
+      opacity: 1;
+    }
+
+    .player-card.finished {
+      opacity: .72;
+    }
+
+    .player-head,
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      gap: 7px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .player-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 900;
+    }
+
+    .mini-dot {
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+    }
+
+    .stats span {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--muted);
+    }
+
+    .progress-track {
+      height: 10px;
+      overflow: hidden;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #f3dfb6;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: var(--progress, 0%);
+      background: linear-gradient(90deg, #f4bd45, #168d8d);
+    }
+
+    .money.good { color: #2f6d35; }
+    .money.bad { color: #a33a30; }
+
+    .space.current-space {
+      outline: 4px solid rgba(255, 248, 223, .95);
+      z-index: 8;
+      animation: thump .8s ease-in-out infinite alternate;
+    }
+
+    @keyframes thump {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      place-items: center;
+      padding: 14px;
+      background: rgba(43, 38, 48, .45);
+    }
+
+    .modal.active {
+      display: grid;
+    }
+
+    .modal-card {
+      width: min(100%, 440px);
+      max-height: calc(100svh - 28px);
+      overflow: auto;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .choice-btn {
+      text-align: left;
+      background: #fff8df;
+      padding: 9px;
+      min-height: 56px;
+    }
+
+    .choice-btn strong {
+      display: block;
+      font-size: 15px;
+    }
+
+    .choice-btn span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+      margin-top: 2px;
+    }
+
+    .results {
+      display: grid;
+      gap: 7px;
+    }
+
+    .rank {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff8df;
+      padding: 8px;
+      font-weight: 900;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 860px) {
+      .setup-grid,
+      .game-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .turn-card {
+        order: 1;
+      }
+
+      .board-panel {
+        order: 2;
+      }
+
+      .masthead {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .board {
+        aspect-ratio: .74 / 1;
+        min-height: min(64svh, 650px);
+      }
+
+      .space {
+        width: clamp(32px, 8.5vw, 46px);
+        font-size: 14px;
+        border-width: 2px;
+      }
+
+      .space-label {
+        width: 52px;
+        font-size: 7px;
+      }
+
+      .piece {
+        width: 15px;
+        height: 15px;
+      }
+
+      .player-setup {
+        grid-template-columns: 1fr;
+      }
+
+      .ledger {
+        order: 3;
+      }
+
+      .ledger h2 {
+        font-size: 18px;
+      }
+
+      #ledgerList {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .player-card {
+        padding: 7px;
+      }
+
+      .stats {
+        gap: 4px;
+      }
+
+      .stats span {
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .app {
+        padding-left: 7px;
+        padding-right: 7px;
+        gap: 7px;
+      }
+
+      .field-row,
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .screen.active,
+      .turn-card,
+      .ledger {
+        gap: 7px;
+      }
+
+      .board-panel {
+        padding: 6px;
+      }
+
+      .top-row {
+        gap: 5px;
+      }
+
+      .chip {
+        min-height: 30px;
+        padding: 4px 6px;
+        font-size: 12px;
+      }
+
+      .top-row button {
+        flex: 1 1 120px;
+        min-height: 34px;
+      }
+
+      .current-player {
+        font-size: 16px;
+      }
+
+      .turn-status {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+      }
+
+      .status-tile,
+      .happening,
+      .next-player {
+        padding: 6px;
+      }
+
+      .status-tile strong,
+      .next-player strong {
+        font-size: 12px;
+      }
+
+      .happening strong {
+        font-size: 15px;
+      }
+
+      .happening p {
+        font-size: 12px;
+      }
+
+      .spinner {
+        width: 112px;
+        border-width: 4px;
+        box-shadow: inset 0 0 0 6px rgba(255,255,255,.45), 0 4px 0 rgba(43,38,48,.22);
+      }
+
+      .spin-value {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+      }
+
+      .board {
+        min-height: min(56svh, 540px);
+        border-width: 2px;
+      }
+
+      .space {
+        width: clamp(27px, 7.2vw, 36px);
+        font-size: 11px;
+        box-shadow: 0 2px 0 rgba(43,38,48,.22);
+      }
+
+      .space-label {
+        display: none;
+      }
+
+      .space.current-space .space-label {
+        display: block;
+        top: calc(100% + 1px);
+        width: 48px;
+        font-size: 7px;
+      }
+
+      .piece {
+        width: 13px;
+        height: 13px;
+      }
+
+      .piece::after {
+        inset: -11px -4px auto;
+        font-size: 9px;
+      }
+
+      .landmark {
+        border-width: 2px;
+        font-size: 8px;
+        opacity: .86;
+      }
+
+      .landmark::before {
+        width: 18px;
+        height: 11px;
+        margin-bottom: 2px;
+        border-width: 1px;
+      }
+
+      .landmark.school {
+        left: 7%;
+        top: 28%;
+        width: 48px;
+        height: 36px;
+      }
+
+      .landmark.bank {
+        right: 7%;
+        top: 17%;
+        width: 46px;
+        height: 36px;
+      }
+
+      .landmark.home {
+        left: 11%;
+        bottom: 14%;
+        width: 50px;
+        height: 38px;
+      }
+
+      .landmark.park {
+        right: 10%;
+        bottom: 16%;
+        width: 46px;
+        height: 36px;
+      }
+
+      #ledgerList {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .player-card .stats:nth-of-type(2) span:nth-child(2),
+      .player-card .stats:nth-of-type(2) span:nth-child(3) {
+        display: none;
+      }
+
+      .log {
+        min-height: 68px;
+        max-height: 92px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="setupScreen" class="screen active">
+      <header class="masthead">
+        <div>
+          <h1>Journey Road</h1>
+          <p class="subtitle">A quick original road-trip board game about careers, homes, family, surprises, and finishing with the strongest net worth.</p>
+        </div>
+        <button id="quickStartBtn" type="button">Quick Start</button>
+      </header>
+
+      <div class="setup-grid">
+        <section class="panel">
+          <h2>Players</h2>
+          <div id="playerSetup" class="player-setup"></div>
+          <p id="setupError" class="setup-note" aria-live="polite">Choose 2 to 6 active players. Each slot can be local, computer, or off.</p>
+        </section>
+
+        <aside class="panel">
+          <h2>Game Options</h2>
+          <label>
+            AI difficulty
+            <select id="difficulty">
+              <option value="easy">Easy</option>
+              <option value="normal" selected>Normal</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+          <label>
+            Game length
+            <select id="gameLength">
+              <option value="short" selected>Short road, about 10-15 minutes</option>
+              <option value="brisk">Brisk road, about 8-10 minutes</option>
+            </select>
+          </label>
+          <button id="startGameBtn" class="start-btn" type="button">Start Journey</button>
+          <p class="setup-note">Computer players compare expected cash, salary, risk, and finish timing. Higher difficulty weighs long-term value more strongly.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-layout">
+      <section class="board-panel">
+        <div class="top-row">
+          <div class="chip">Round <span id="roundNum">1</span></div>
+          <div class="chip">Spaces <span id="spaceCount">44</span></div>
+          <button id="newGameBtn" type="button">New Game</button>
+        </div>
+        <div id="board" class="board" aria-label="Journey Road board"></div>
+      </section>
+
+      <aside class="turn-card">
+        <div class="current-player">
+          <span id="currentDot" class="current-dot"></span>
+          <span id="currentName">Player</span>
+        </div>
+        <div class="turn-status">
+          <div class="status-tile">
+            <small>Phase</small>
+            <strong id="phaseText">Ready</strong>
+          </div>
+          <div class="status-tile">
+            <small>Space</small>
+            <strong id="spaceText">Start</strong>
+          </div>
+          <div class="status-tile">
+            <small>Spin</small>
+            <strong id="spinText">Waiting</strong>
+          </div>
+        </div>
+        <div id="spinner" class="spinner" aria-hidden="true">
+          <div id="spinValue" class="spin-value">-</div>
+        </div>
+        <div id="happening" class="happening">
+          <small>Latest Happening</small>
+          <strong id="happeningTitle">Journey started</strong>
+          <p id="happeningText">Tap Spin when it is your turn. Computer players will take their turns automatically.</p>
+        </div>
+        <div class="actions">
+          <button id="spinBtn" class="primary" type="button">Spin</button>
+        </div>
+        <div id="nextPlayer" class="next-player">
+          <span id="nextDot" class="next-dot"></span>
+          <small>Up Next</small>
+          <strong id="nextName">Player</strong>
+        </div>
+        <div id="log" class="log" aria-live="polite"></div>
+      </aside>
+
+      <aside class="ledger">
+        <h2>Ledger</h2>
+        <div id="ledgerList"></div>
+      </aside>
+    </section>
+  </main>
+
+  <div id="choiceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <h2 id="modalTitle">Choose</h2>
+      <p id="modalText" class="setup-note"></p>
+      <div id="choiceList" class="choice-list"></div>
+    </div>
+  </div>
+
+  <div id="resultsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="resultsTitle">
+    <div class="modal-card">
+      <h2 id="resultsTitle">Final Standings</h2>
+      <div id="resultsList" class="results"></div>
+      <button id="playAgainBtn" class="start-btn" type="button">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const colors = ["#c94f3d", "#168d8d", "#d99b2b", "#587d3e", "#4d6e9a", "#df8fa8"];
+    const names = ["Avery", "Blair", "Casey", "Devon", "Emery", "Finley"];
+    const typeIcons = {
+      start: "GO",
+      payday: "$",
+      career: "C",
+      event: "!",
+      home: "H",
+      family: "+",
+      choice: "?",
+      finish: "*"
+    };
+    const typeLabels = {
+      start: "Start",
+      payday: "Payday",
+      career: "Career",
+      event: "Event",
+      home: "Home",
+      family: "Family",
+      choice: "Choice",
+      finish: "Finish"
+    };
+
+    const boardTypes = [
+      "start", "choice", "career", "payday", "event", "home", "payday", "family",
+      "event", "career", "payday", "choice", "event", "home", "payday", "family",
+      "career", "event", "payday", "choice", "home", "event", "payday", "family",
+      "career", "event", "payday", "home", "choice", "payday", "event", "family",
+      "career", "payday", "home", "event", "choice", "payday", "family", "event",
+      "payday", "career", "finish", "finish"
+    ];
+
+    const careers = {
+      work: [
+        { title: "Mechanic", salary: 52000, bonus: 2500 },
+        { title: "Chef", salary: 56000, bonus: 3000 },
+        { title: "Sales Lead", salary: 61000, bonus: 4500 },
+        { title: "Builder", salary: 65000, bonus: 3500 }
+      ],
+      educated: [
+        { title: "Engineer", salary: 85000, bonus: 7000 },
+        { title: "Nurse Practitioner", salary: 90000, bonus: 6000 },
+        { title: "Designer", salary: 78000, bonus: 8500 },
+        { title: "Researcher", salary: 82000, bonus: 7500 }
+      ]
+    };
+
+    const houses = [
+      { title: "Tiny Bungalow", cost: 90000, value: 115000 },
+      { title: "Townhouse", cost: 155000, value: 198000 },
+      { title: "Lake Cabin", cost: 210000, value: 285000 },
+      { title: "Brick Two-Story", cost: 275000, value: 350000 }
+    ];
+
+    const events = [
+      { text: "Side hustle takes off.", cash: 12000 },
+      { text: "Car repair bill.", cash: -9000 },
+      { text: "Community award.", cash: 7000 },
+      { text: "Market slump hits savings.", cash: -11000 },
+      { text: "Old collection sells well.", cash: 10000 },
+      { text: "Medical expense.", cash: -8000 },
+      { text: "Smart investment matures.", cash: 14000 },
+      { text: "Vacation goes over budget.", cash: -6000 },
+      { text: "Freelance project lands.", cash: 9000 },
+      { text: "Appliance replacement.", cash: -5000 }
+    ];
+
+    const state = {
+      players: [],
+      current: 0,
+      round: 1,
+      spinAngle: 0,
+      busy: false,
+      difficulty: "normal",
+      boardTypes: boardTypes.slice(),
+      phase: "Ready",
+      lastSpin: "-",
+      latest: {
+        title: "Journey started",
+        text: "Tap Spin when it is your turn. Computer players will take their turns automatically.",
+        amount: 0
+      }
+    };
+
+    const setupScreen = document.querySelector("#setupScreen");
+    const gameScreen = document.querySelector("#gameScreen");
+    const playerSetup = document.querySelector("#playerSetup");
+    const setupError = document.querySelector("#setupError");
+    const difficulty = document.querySelector("#difficulty");
+    const gameLength = document.querySelector("#gameLength");
+    const startGameBtn = document.querySelector("#startGameBtn");
+    const quickStartBtn = document.querySelector("#quickStartBtn");
+    const newGameBtn = document.querySelector("#newGameBtn");
+    const board = document.querySelector("#board");
+    const currentDot = document.querySelector("#currentDot");
+    const currentName = document.querySelector("#currentName");
+    const spinner = document.querySelector("#spinner");
+    const spinValue = document.querySelector("#spinValue");
+    const spinBtn = document.querySelector("#spinBtn");
+    const phaseText = document.querySelector("#phaseText");
+    const spaceText = document.querySelector("#spaceText");
+    const spinText = document.querySelector("#spinText");
+    const happeningTitle = document.querySelector("#happeningTitle");
+    const happeningText = document.querySelector("#happeningText");
+    const nextDot = document.querySelector("#nextDot");
+    const nextName = document.querySelector("#nextName");
+    const log = document.querySelector("#log");
+    const ledgerList = document.querySelector("#ledgerList");
+    const roundNum = document.querySelector("#roundNum");
+    const spaceCount = document.querySelector("#spaceCount");
+    const choiceModal = document.querySelector("#choiceModal");
+    const modalTitle = document.querySelector("#modalTitle");
+    const modalText = document.querySelector("#modalText");
+    const choiceList = document.querySelector("#choiceList");
+    const resultsModal = document.querySelector("#resultsModal");
+    const resultsList = document.querySelector("#resultsList");
+    const playAgainBtn = document.querySelector("#playAgainBtn");
+
+    function money(value) {
+      const sign = value < 0 ? "-" : "";
+      return `${sign}$${Math.abs(value).toLocaleString()}`;
+    }
+
+    function clampCash(player) {
+      if (player.cash < 0) {
+        player.debt += Math.abs(player.cash);
+        player.cash = 0;
+      }
+    }
+
+    function netWorth(player) {
+      const homeValue = player.house ? player.house.value : 0;
+      return player.cash + homeValue - player.debt;
+    }
+
+    function makePlayer(index, mode, name) {
+      return {
+        id: index,
+        name,
+        mode,
+        color: colors[index],
+        position: 0,
+        cash: 60000,
+        debt: 0,
+        salary: 0,
+        career: null,
+        educated: false,
+        house: null,
+        partner: false,
+        children: 0,
+        finished: false,
+        turns: 0
+      };
+    }
+
+    function renderSetup() {
+      playerSetup.innerHTML = "";
+      for (let i = 0; i < 6; i += 1) {
+        const slot = document.createElement("div");
+        slot.className = "slot";
+        slot.innerHTML = `
+          <span class="swatch" style="background:${colors[i]}"></span>
+          <div class="slot-fields">
+            <div class="field-row">
+              <label>Slot
+                <select class="mode" data-index="${i}">
+                  <option value="human"${i < 2 ? " selected" : ""}>Human</option>
+                  <option value="computer">Computer</option>
+                  <option value="off"${i >= 2 ? " selected" : ""}>Off</option>
+                </select>
+              </label>
+              <label>Name
+                <input class="name" data-index="${i}" value="${names[i]}" maxlength="14" />
+              </label>
+            </div>
+          </div>
+        `;
+        playerSetup.appendChild(slot);
+      }
+    }
+
+    function pathPoint(index, total) {
+      const mobile = board.clientHeight > board.clientWidth;
+      const columns = mobile ? 6 : 9;
+      const rows = Math.ceil(total / columns);
+      const row = Math.floor(index / columns);
+      const inRow = index % columns;
+      const col = row % 2 === 0 ? inRow : columns - 1 - inRow;
+      const xPad = mobile ? 10 : 7;
+      const yPad = mobile ? 5 : 8;
+      const x = xPad + col * ((100 - xPad * 2) / (columns - 1));
+      const y = yPad + row * ((100 - yPad * 2) / Math.max(1, rows - 1));
+      return { x, y };
+    }
+
+    function renderBoard() {
+      board.innerHTML = "";
+      spaceCount.textContent = state.boardTypes.length;
+
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "road-line");
+      svg.setAttribute("viewBox", "0 0 100 100");
+      svg.setAttribute("preserveAspectRatio", "none");
+      const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      const points = state.boardTypes.map((_, index) => {
+        const point = pathPoint(index, state.boardTypes.length);
+        return `${point.x},${point.y}`;
+      }).join(" ");
+      poly.setAttribute("points", points);
+      poly.setAttribute("fill", "none");
+      poly.setAttribute("stroke", "#3b3130");
+      poly.setAttribute("stroke-width", "3.4");
+      poly.setAttribute("stroke-linecap", "round");
+      poly.setAttribute("stroke-linejoin", "round");
+      svg.appendChild(poly);
+      board.appendChild(svg);
+
+      [
+        ["school", "School"],
+        ["bank", "Bank"],
+        ["home", "Homes"],
+        ["park", "Park"]
+      ].forEach(([className, label]) => {
+        const landmark = document.createElement("div");
+        landmark.className = `landmark ${className}`;
+        landmark.textContent = label;
+        board.appendChild(landmark);
+      });
+
+      state.boardTypes.forEach((type, index) => {
+        const point = pathPoint(index, state.boardTypes.length);
+        const space = document.createElement("div");
+        const isCurrent = state.players[state.current] && state.players[state.current].position === index;
+        space.className = `space ${type}${isCurrent ? " current-space" : ""}`;
+        space.style.left = `${point.x}%`;
+        space.style.top = `${point.y}%`;
+        space.dataset.index = String(index);
+        space.innerHTML = `<span>${typeIcons[type]}</span><span class="space-label">${typeLabels[type]}</span>`;
+        board.appendChild(space);
+      });
+
+      state.players.forEach(player => {
+        const piece = document.createElement("div");
+        piece.className = "piece";
+        piece.dataset.player = String(player.id);
+        piece.dataset.initial = player.name.slice(0, 1).toUpperCase();
+        piece.style.background = player.color;
+        board.appendChild(piece);
+      });
+      positionPieces();
+    }
+
+    function positionPieces() {
+      const offsets = [
+        [-12, -12], [12, -12], [-12, 12], [12, 12], [0, -16], [0, 16]
+      ];
+      state.players.forEach((player, order) => {
+        const piece = board.querySelector(`.piece[data-player="${player.id}"]`);
+        if (!piece) return;
+        const point = pathPoint(player.position, state.boardTypes.length);
+        const off = offsets[order % offsets.length];
+        piece.style.left = `calc(${point.x}% + ${off[0]}px)`;
+        piece.style.top = `calc(${point.y}% + ${off[1]}px)`;
+      });
+      board.querySelectorAll(".space.current-space").forEach(space => space.classList.remove("current-space"));
+      const currentPlayer = state.players[state.current];
+      if (currentPlayer) {
+        const currentSpace = board.querySelector(`.space[data-index="${currentPlayer.position}"]`);
+        if (currentSpace) currentSpace.classList.add("current-space");
+      }
+    }
+
+    function renderLedger() {
+      ledgerList.innerHTML = "";
+      state.players.forEach((player, index) => {
+        const card = document.createElement("div");
+        const progress = Math.round((player.position / (state.boardTypes.length - 1)) * 100);
+        card.className = `player-card${index === state.current && !player.finished ? " active" : ""}${player.finished ? " finished" : ""}`;
+        card.innerHTML = `
+          <div class="player-head">
+            <span class="player-name"><span class="mini-dot" style="background:${player.color}"></span>${player.name}</span>
+            <strong>${player.mode === "computer" ? "CPU" : "Human"}</strong>
+          </div>
+          <div class="stats">
+            <span>Cash ${money(player.cash)}</span>
+            <span>Debt ${money(player.debt)}</span>
+            <span>Net ${money(netWorth(player))}</span>
+          </div>
+          <div class="stats">
+            <span>${player.career ? player.career.title : "No career"}</span>
+            <span>${player.house ? player.house.title : "No home"}</span>
+            <span>${player.partner ? "Partner" : "Solo"} · ${player.children} kids</span>
+          </div>
+          <div class="progress-track" aria-label="${player.name} road progress">
+            <div class="progress-fill" style="--progress:${progress}%"></div>
+          </div>
+          <div class="stats">
+            <span>Space ${player.position + 1} of ${state.boardTypes.length}</span>
+            <span>${player.finished ? "Finished" : `${progress}% done`}</span>
+          </div>
+        `;
+        ledgerList.appendChild(card);
+      });
+    }
+
+    function renderTurn() {
+      const player = state.players[state.current];
+      if (!player) return;
+      const next = peekNextPlayer();
+      currentDot.style.background = player.color;
+      currentName.textContent = `${player.name}${player.mode === "computer" ? " (Computer)" : ""}`;
+      nextDot.style.background = next ? next.color : player.color;
+      nextName.textContent = next ? `${next.name}${next.mode === "computer" ? " (Computer)" : ""}` : "Final standings";
+      phaseText.textContent = state.phase;
+      spaceText.textContent = typeLabels[state.boardTypes[player.position]] || "Road";
+      spinText.textContent = state.lastSpin === "-" ? "Waiting" : String(state.lastSpin);
+      happeningTitle.textContent = state.latest.title;
+      happeningText.textContent = state.latest.text;
+      roundNum.textContent = String(state.round);
+      spinBtn.disabled = state.busy || player.mode === "computer" || player.finished;
+      renderLedger();
+      positionPieces();
+    }
+
+    function setPhase(phase) {
+      state.phase = phase;
+      renderTurn();
+    }
+
+    function addLog(text, title = "Update", amount = 0) {
+      state.latest = { title, text, amount };
+      const item = document.createElement("p");
+      item.innerHTML = `<strong>${title}:</strong> ${text}`;
+      if (amount !== 0) {
+        const amountNode = document.createElement("span");
+        amountNode.className = `money ${amount > 0 ? "good" : "bad"}`;
+        amountNode.textContent = ` ${amount > 0 ? "+" : ""}${money(amount)}`;
+        item.appendChild(amountNode);
+      }
+      log.prepend(item);
+      while (log.children.length > 8) log.lastElementChild.remove();
+      renderTurn();
+    }
+
+    function peekNextPlayer() {
+      if (!state.players.length || state.players.every(p => p.finished)) return null;
+      let index = state.current;
+      do {
+        index = (index + 1) % state.players.length;
+      } while (state.players[index].finished);
+      return state.players[index];
+    }
+
+    function setupChoices(title, text, choices, player) {
+      return new Promise(resolve => {
+        modalTitle.textContent = title;
+        modalText.textContent = text;
+        choiceList.innerHTML = "";
+        const isComputer = player.mode === "computer";
+        choices.forEach(choice => {
+          const btn = document.createElement("button");
+          btn.className = "choice-btn";
+          btn.type = "button";
+          btn.innerHTML = `<strong>${choice.label}</strong><span>${choice.detail}</span>`;
+          btn.addEventListener("click", () => {
+            choiceModal.classList.remove("active");
+            resolve(choice);
+          });
+          choiceList.appendChild(btn);
+        });
+        choiceModal.classList.add("active");
+        if (isComputer) {
+          const chosen = chooseForAI(player, choices);
+          window.setTimeout(() => {
+            choiceModal.classList.remove("active");
+            resolve(chosen);
+          }, 650);
+        }
+      });
+    }
+
+    function chooseForAI(player, choices) {
+      if (state.difficulty === "easy" && Math.random() < .45) {
+        return choices[Math.floor(Math.random() * choices.length)];
+      }
+      let best = choices[0];
+      let bestScore = -Infinity;
+      choices.forEach(choice => {
+        let score = choice.value || 0;
+        if (choice.kind === "education") {
+          score += state.difficulty === "hard" ? 90000 : 55000;
+          if (player.debt > 60000) score -= 30000;
+        }
+        if (choice.kind === "career") {
+          score += (choice.career.salary * (state.difficulty === "hard" ? 2.2 : 1.5)) + choice.career.bonus;
+        }
+        if (choice.kind === "house") {
+          if (choice.house) {
+            score += (choice.house.value - choice.house.cost) * (state.difficulty === "hard" ? 1.8 : 1.2);
+            if (player.cash < choice.house.cost * .45) score -= 18000;
+          } else {
+            score += player.debt > 70000 ? 20000 : 0;
+          }
+        }
+        if (choice.kind === "family") {
+          score += state.difficulty === "hard" ? choice.value : choice.value * .75;
+        }
+        if (score > bestScore) {
+          best = choice;
+          bestScore = score;
+        }
+      });
+      return best;
+    }
+
+    async function initialPathChoice(player) {
+      const choice = await setupChoices(
+        `${player.name}'s First Step`,
+        "Pick an opening route. Education starts with debt but unlocks higher-paying careers.",
+        [
+          { label: "Start Working", detail: "Take a career now and keep your savings.", kind: "path", value: 35000, educated: false },
+          { label: "Get Educated", detail: "Borrow $45,000 and unlock advanced careers.", kind: "education", value: 65000, educated: true }
+        ],
+        player
+      );
+      player.educated = choice.educated;
+      if (choice.educated) {
+        player.debt += 45000;
+        addLog(`${player.name} chose education and took on student debt.`, "Education", -45000);
+      } else {
+        addLog(`${player.name} started working right away.`, "First Step");
+      }
+      await chooseCareer(player);
+    }
+
+    async function chooseCareer(player) {
+      const pool = player.educated ? careers.educated : careers.work;
+      const options = pool.map(career => ({
+        label: career.title,
+        detail: `${money(career.salary)} salary, ${money(career.bonus)} bonus on career spaces.`,
+        kind: "career",
+        career,
+        value: career.salary + career.bonus
+      }));
+      const choice = await setupChoices(`${player.name}'s Career`, "Choose a career card.", options, player);
+      player.career = choice.career;
+      player.salary = choice.career.salary;
+      addLog(`${player.name} became a ${player.career.title} with a ${money(player.salary)} salary.`, "Career");
+    }
+
+    async function buyHouse(player) {
+      const options = houses.map(house => ({
+        label: house.title,
+        detail: `Costs ${money(house.cost)} and may finish worth ${money(house.value)}.`,
+        kind: "house",
+        house,
+        value: house.value - house.cost
+      }));
+      options.push({ label: "Keep Renting", detail: "No cost, no home asset.", kind: "house", value: player.debt > 70000 ? 20000 : 0, house: null });
+      const choice = await setupChoices(`${player.name}'s Home`, "Buy a home or keep renting.", options, player);
+      if (!choice.house) {
+        addLog(`${player.name} kept renting and avoided new debt.`, "Home");
+        return;
+      }
+      player.house = choice.house;
+      const downPayment = Math.min(player.cash, Math.round(choice.house.cost * .25));
+      player.cash -= downPayment;
+      player.debt += choice.house.cost - downPayment;
+      addLog(`${player.name} bought ${choice.house.title}.`, "Home", -downPayment);
+      clampCash(player);
+    }
+
+    async function familyChoice(player) {
+      const choices = [
+        { label: player.partner ? "Grow Family" : "Find a Partner", detail: player.partner ? "Add one child and receive a family joy bonus." : "Gain a partner and a small support bonus.", kind: "family", value: player.partner ? 12000 : 9000, action: "grow" },
+        { label: "Focus on Goals", detail: "Earn a focused savings bonus now.", kind: "family", value: 14000, action: "focus" }
+      ];
+      const choice = await setupChoices(`${player.name}'s Family Step`, "Choose how this chapter develops.", choices, player);
+      if (choice.action === "grow") {
+        if (player.partner) {
+          player.children += 1;
+          player.cash += 8000;
+          addLog(`${player.name}'s family grew.`, "Family", 8000);
+        } else {
+          player.partner = true;
+          player.cash += 6000;
+          addLog(`${player.name} found a partner.`, "Family", 6000);
+        }
+      } else {
+        player.cash += 14000;
+        addLog(`${player.name} focused on goals and saved money.`, "Family", 14000);
+      }
+    }
+
+    async function choiceSpace(player) {
+      const choices = [
+        { label: "Side Venture", detail: "Risk $8,000 for a possible $26,000 return.", kind: "risk", value: state.difficulty === "hard" ? 11000 : 7000, action: "venture" },
+        { label: "Play It Steady", detail: "Take a guaranteed $7,000.", kind: "safe", value: 7000, action: "steady" }
+      ];
+      const choice = await setupChoices(`${player.name}'s Crossroad`, "Pick a financial move.", choices, player);
+      if (choice.action === "venture") {
+        const success = Math.random() > .42;
+        player.cash += success ? 26000 : -8000;
+        addLog(success ? `${player.name}'s side venture paid off.` : `${player.name}'s side venture lost money.`, "Crossroad", success ? 26000 : -8000);
+      } else {
+        player.cash += 7000;
+        addLog(`${player.name} banked a steady choice.`, "Crossroad", 7000);
+      }
+      clampCash(player);
+    }
+
+    function payday(player) {
+      const amount = Math.round((player.salary || 48000) / 4);
+      player.cash += amount;
+      addLog(`${player.name} collected a quarterly payday.`, "Payday", amount);
+    }
+
+    function eventSpace(player) {
+      const event = events[Math.floor(Math.random() * events.length)];
+      player.cash += event.cash;
+      addLog(`${player.name}: ${event.text}`, "Event", event.cash);
+      clampCash(player);
+    }
+
+    async function careerSpace(player) {
+      if (!player.career) {
+        await chooseCareer(player);
+        return;
+      }
+      player.cash += player.career.bonus;
+      addLog(`${player.name}'s ${player.career.title} bonus paid out.`, "Career Bonus", player.career.bonus);
+    }
+
+    async function resolveSpace(player) {
+      const type = state.boardTypes[player.position];
+      if (type === "payday") payday(player);
+      if (type === "event") eventSpace(player);
+      if (type === "career") await careerSpace(player);
+      if (type === "home") await buyHouse(player);
+      if (type === "family") await familyChoice(player);
+      if (type === "choice") await choiceSpace(player);
+      if (type === "finish") finishPlayer(player);
+      clampCash(player);
+    }
+
+    function finishPlayer(player) {
+      if (player.finished) return;
+      player.finished = true;
+      const familyBonus = (player.partner ? 12000 : 0) + player.children * 7000;
+      player.cash += familyBonus;
+      if (player.house) {
+        player.cash += player.house.value;
+        player.debt = Math.max(0, player.debt - player.house.cost);
+      }
+      addLog(`${player.name} reached the finish and tallied home value plus family bonuses.`, "Finish", familyBonus);
+    }
+
+    async function takeTurn() {
+      if (state.busy) return;
+      const player = state.players[state.current];
+      if (!player || player.finished) {
+        nextTurn();
+        return;
+      }
+
+      state.busy = true;
+      setPhase(player.mode === "computer" ? "Computer thinking" : "Choose");
+      renderTurn();
+      if (player.turns === 0 && player.position === 0 && !player.career) {
+        await initialPathChoice(player);
+      }
+
+      setPhase("Spinning");
+      const spin = Math.floor(Math.random() * 6) + 1;
+      player.turns += 1;
+      state.lastSpin = spin;
+      state.spinAngle += 720 + spin * 60 + Math.floor(Math.random() * 30);
+      spinner.style.setProperty("--spin", `${state.spinAngle}deg`);
+      spinValue.textContent = String(spin);
+      addLog(`${player.name} spun ${spin} and moved down the road.`, "Movement");
+      await wait(620);
+
+      player.position = Math.min(state.boardTypes.length - 1, player.position + spin);
+      positionPieces();
+      await wait(300);
+      setPhase(typeLabels[state.boardTypes[player.position]] || "Resolving");
+      await resolveSpace(player);
+      renderTurn();
+      await wait(player.mode === "computer" ? 650 : 900);
+      state.busy = false;
+      if (state.players.every(p => p.finished)) {
+        showResults();
+      } else {
+        nextTurn();
+      }
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => window.setTimeout(resolve, ms));
+    }
+
+    function nextTurn() {
+      if (state.players.every(p => p.finished)) {
+        showResults();
+        return;
+      }
+      const previous = state.current;
+      do {
+        state.current = (state.current + 1) % state.players.length;
+        if (state.current === 0 && previous !== 0) state.round += 1;
+      } while (state.players[state.current].finished);
+      state.phase = state.players[state.current].mode === "computer" ? "Computer turn" : "Ready";
+      state.lastSpin = "-";
+      renderTurn();
+      if (state.players[state.current].mode === "computer") {
+        window.setTimeout(takeTurn, 450);
+      }
+    }
+
+    function showResults() {
+      resultsList.innerHTML = "";
+      const ranked = state.players.slice().sort((a, b) => netWorth(b) - netWorth(a));
+      ranked.forEach((player, index) => {
+        const row = document.createElement("div");
+        row.className = "rank";
+        row.innerHTML = `<span>#${index + 1}</span><span>${player.name}</span><span>${money(netWorth(player))}</span>`;
+        resultsList.appendChild(row);
+      });
+      resultsModal.classList.add("active");
+    }
+
+    function collectPlayers() {
+      const modes = Array.from(document.querySelectorAll(".mode"));
+      const inputs = Array.from(document.querySelectorAll(".name"));
+      const players = [];
+      modes.forEach((select, index) => {
+        if (select.value === "off") return;
+        const input = inputs.find(item => Number(item.dataset.index) === index);
+        players.push(makePlayer(index, select.value, (input.value || names[index]).trim().slice(0, 14)));
+      });
+      return players;
+    }
+
+    function startGame(quick = false) {
+      if (quick) {
+        document.querySelector('.mode[data-index="0"]').value = "human";
+        document.querySelector('.mode[data-index="1"]').value = "computer";
+        document.querySelector('.mode[data-index="2"]').value = "computer";
+        for (let i = 3; i < 6; i += 1) document.querySelector(`.mode[data-index="${i}"]`).value = "off";
+      }
+      const players = collectPlayers();
+      if (players.length < 2 || players.length > 6) {
+        setupError.textContent = "Start needs 2 to 6 active players.";
+        return;
+      }
+      state.players = players;
+      state.current = 0;
+      state.round = 1;
+      state.spinAngle = 0;
+      state.busy = false;
+      state.difficulty = difficulty.value;
+      state.boardTypes = gameLength.value === "brisk" ? boardTypes.slice(0, 36).concat(["finish"]) : boardTypes.slice();
+      state.phase = "Ready";
+      state.lastSpin = "-";
+      state.latest = {
+        title: "Journey started",
+        text: "Tap Spin when it is your turn. Computer players will take their turns automatically.",
+        amount: 0
+      };
+      log.innerHTML = "";
+      setupScreen.classList.remove("active");
+      gameScreen.classList.add("active");
+      resultsModal.classList.remove("active");
+      spinValue.textContent = "-";
+      renderBoard();
+      renderTurn();
+      addLog("Tap Spin when it is your turn. The next player advances automatically after each turn.", "Journey Started");
+      if (state.players[state.current].mode === "computer") window.setTimeout(takeTurn, 500);
+    }
+
+    function resetToSetup() {
+      state.busy = false;
+      resultsModal.classList.remove("active");
+      choiceModal.classList.remove("active");
+      gameScreen.classList.remove("active");
+      setupScreen.classList.add("active");
+    }
+
+    renderSetup();
+    startGameBtn.addEventListener("click", () => startGame(false));
+    quickStartBtn.addEventListener("click", () => startGame(true));
+    spinBtn.addEventListener("click", takeTurn);
+    newGameBtn.addEventListener("click", resetToSetup);
+    playAgainBtn.addEventListener("click", resetToSetup);
+    window.addEventListener("resize", () => {
+      if (gameScreen.classList.contains("active")) renderBoard();
+    });
+
+    window.JourneyRoad = { state, startGame, takeTurn, nextTurn, netWorth };
+  </script>
+</body>
+</html>
