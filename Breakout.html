@@ -393,7 +393,88 @@
       .app {
         padding-left: 8px;
         padding-right: 8px;
-        gap: 8px;
+        gap: 6px;
+      }
+
+      .topbar {
+        padding: 6px;
+        gap: 5px;
+      }
+
+      .brand-row,
+      .stat-row {
+        gap: 6px;
+      }
+
+      .brand-row .subtitle {
+        display: none;
+      }
+
+      .stat-row {
+        flex-wrap: nowrap;
+      }
+
+      .pill {
+        min-width: 0;
+        padding: 5px 6px;
+        border-radius: 7px;
+        gap: 0;
+        flex: 1 1 0;
+      }
+
+      .pill small {
+        font-size: 9px;
+      }
+
+      .pill strong {
+        font-size: 15px;
+      }
+
+      .badge {
+        min-width: 22px;
+        min-height: 22px;
+        font-size: 11px;
+      }
+
+      .status {
+        padding: 6px;
+        gap: 5px;
+      }
+
+      .status-head {
+        gap: 6px;
+        flex-wrap: nowrap;
+      }
+
+      .status-head strong {
+        font-size: 12px;
+      }
+
+      .status-head .subtitle {
+        max-width: none;
+        font-size: 11px;
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .status-text {
+        min-height: 14px;
+        font-size: 11px;
+        line-height: 1.2;
+      }
+
+      .combo-row {
+        font-size: 10px;
+      }
+
+      .combo-row strong {
+        font-size: 12px;
+      }
+
+      .status-bar {
+        height: 6px;
       }
 
       .board-shell {
@@ -405,7 +486,22 @@
       }
 
       h1 {
-        font-size: 21px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-height: 740px) {
+      .app {
+        gap: 6px;
+      }
+
+      .topbar,
+      .status {
+        padding: 6px;
+      }
+
+      .status-text {
+        display: none;
       }
     }
 
