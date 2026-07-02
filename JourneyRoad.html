@@ -20,6 +20,7 @@
       --cream: #fff4d5;
       --shadow: rgba(43, 38, 48, 0.23);
       --radius: 8px;
+      --pixel: 4px;
       font-family: "Trebuchet MS", ui-rounded, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -51,12 +52,13 @@
     button {
       min-height: 42px;
       border: 2px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 4px;
       background: var(--cream);
       color: var(--ink);
       box-shadow: 0 3px 0 var(--line);
       font-weight: 900;
       cursor: pointer;
+      text-transform: uppercase;
     }
 
     button:active {
@@ -75,7 +77,7 @@
       width: 100%;
       min-height: 38px;
       border: 2px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 4px;
       background: #fff8df;
       color: var(--ink);
       padding: 6px 8px;
@@ -107,9 +109,9 @@
     .turn-card,
     .modal-card {
       border: 3px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 4px;
       background: var(--paper);
-      box-shadow: 0 8px 0 rgba(43, 38, 48, .18);
+      box-shadow: 0 8px 0 rgba(43, 38, 48, .18), inset 0 0 0 3px rgba(255, 248, 223, .32);
     }
 
     .masthead {
@@ -120,8 +122,9 @@
       gap: 12px;
       background:
         radial-gradient(circle at 18px 18px, rgba(255,255,255,.55) 0 5px, transparent 6px),
+        linear-gradient(90deg, rgba(43,38,48,.14) 0 2px, transparent 2px 10px),
         linear-gradient(135deg, #f8d06b, #e88d4e 45%, #63a6a8);
-      background-size: auto, 100% 100%;
+      background-size: auto, 10px 10px, 100% 100%;
     }
 
     h1,
@@ -176,9 +179,10 @@
       gap: 8px;
       align-items: start;
       border: 2px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 4px;
       background: #fff0c4;
       padding: 8px;
+      box-shadow: inset 0 -4px 0 rgba(43,38,48,.08);
     }
 
     .swatch {
@@ -186,7 +190,8 @@
       height: 100%;
       min-height: 80px;
       border: 2px solid var(--line);
-      border-radius: 5px;
+      border-radius: 3px;
+      box-shadow: inset 0 -12px 0 rgba(43,38,48,.18), inset 0 10px 0 rgba(255,255,255,.2);
     }
 
     .slot-fields {
@@ -239,7 +244,7 @@
       align-items: center;
       gap: 6px;
       border: 2px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 4px;
       background: #fff4d5;
       padding: 5px 8px;
       font-weight: 900;
@@ -250,7 +255,9 @@
       padding: 8px;
       background:
         linear-gradient(135deg, rgba(255,255,255,.35), transparent 38%),
+        linear-gradient(90deg, rgba(43,38,48,.06) 0 4px, transparent 4px 16px),
         #c8d6a2;
+      background-size: auto, 16px 16px, auto;
       overflow: hidden;
     }
 
@@ -262,11 +269,48 @@
       border: 3px solid var(--line);
       border-radius: var(--radius);
       background:
+        linear-gradient(90deg, rgba(79, 114, 62, .2) 0 4px, transparent 4px 16px),
+        linear-gradient(rgba(79, 114, 62, .16) 0 4px, transparent 4px 16px),
         radial-gradient(circle at 17% 22%, rgba(255,255,255,.42) 0 9%, transparent 10%),
         radial-gradient(circle at 79% 68%, rgba(255,255,255,.32) 0 12%, transparent 13%),
         linear-gradient(45deg, rgba(43,38,48,.05) 25%, transparent 25% 50%, rgba(43,38,48,.05) 50% 75%, transparent 75%),
         #a8c986;
-      background-size: auto, auto, 32px 32px, auto;
+      background-size: 16px 16px, 16px 16px, auto, auto, 32px 32px, auto;
+      image-rendering: pixelated;
+      overflow: hidden;
+    }
+
+    .board::before,
+    .board::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .board::before {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 16%;
+      background:
+        linear-gradient(90deg, transparent 0 8px, rgba(65, 105, 56, .34) 8px 12px, transparent 12px 22px),
+        linear-gradient(#6aa05d 0 12px, #4f7f45 12px 24px);
+      background-size: 32px 24px, 100% 24px;
+      opacity: .5;
+    }
+
+    .board::after {
+      width: 96px;
+      height: 44px;
+      right: 7%;
+      top: 4%;
+      background:
+        linear-gradient(#fff8df 0 12px, transparent 12px),
+        linear-gradient(90deg, transparent 0 16px, #fff8df 16px 60px, transparent 60px),
+        linear-gradient(90deg, #fff8df 0 28px, transparent 28px 40px, #fff8df 40px 80px, transparent 80px);
+      filter: drop-shadow(4px 4px 0 rgba(43,38,48,.16));
+      opacity: .8;
     }
 
     .landmark {
@@ -274,7 +318,7 @@
       display: grid;
       place-items: center;
       border: 3px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 3px;
       background: #fff0c4;
       color: var(--ink);
       font-size: 11px;
@@ -284,16 +328,49 @@
       text-transform: uppercase;
       box-shadow: 0 4px 0 rgba(43,38,48,.2);
       pointer-events: none;
-      z-index: 1;
+      z-index: 2;
     }
 
     .landmark::before {
       content: "";
-      width: 26px;
-      height: 16px;
+      width: 34px;
+      height: 24px;
       margin-bottom: 3px;
       border: 2px solid var(--line);
       background: currentColor;
+      clip-path: polygon(0 35%, 50% 0, 100% 35%, 100% 100%, 0 100%);
+      box-shadow: inset 8px 8px 0 rgba(255,255,255,.28), inset -8px -8px 0 rgba(43,38,48,.18);
+    }
+
+    .landmark.bank::before {
+      clip-path: polygon(0 30%, 50% 0, 100% 30%, 100% 42%, 0 42%, 0 100%, 18% 100%, 18% 48%, 34% 48%, 34% 100%, 66% 100%, 66% 48%, 82% 48%, 82% 100%, 100% 100%, 100% 30%);
+    }
+
+    .landmark.park::before {
+      border-radius: 50% 50% 3px 3px;
+      clip-path: none;
+    }
+
+    .landmark.school::after,
+    .landmark.home::after,
+    .landmark.bank::after,
+    .landmark.park::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #fff8df;
+      border: 2px solid var(--line);
+      left: 50%;
+      top: 22px;
+      translate: -50% 0;
+    }
+
+    .landmark.park::after {
+      width: 10px;
+      height: 16px;
+      top: 29px;
+      background: #7a5a38;
     }
 
     .landmark.school {
@@ -332,6 +409,64 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
+      z-index: 1;
+    }
+
+    .pixel-sprite {
+      position: absolute;
+      width: 44px;
+      height: 36px;
+      pointer-events: none;
+      z-index: 1;
+      filter: drop-shadow(3px 3px 0 rgba(43,38,48,.18));
+    }
+
+    .pixel-sprite.car {
+      left: 42%;
+      top: 42%;
+      background:
+        linear-gradient(90deg, transparent 0 8px, #c94f3d 8px 36px, transparent 36px),
+        linear-gradient(90deg, #c94f3d 0 44px),
+        linear-gradient(90deg, transparent 0 6px, #2b2630 6px 14px, transparent 14px 30px, #2b2630 30px 38px, transparent 38px);
+      background-size: 100% 10px, 100% 14px, 100% 8px;
+      background-position: 0 4px, 0 14px, 0 28px;
+      background-repeat: no-repeat;
+    }
+
+    .pixel-sprite.tree-a,
+    .pixel-sprite.tree-b {
+      width: 30px;
+      height: 42px;
+      background:
+        linear-gradient(90deg, transparent 0 8px, #587d3e 8px 22px, transparent 22px),
+        linear-gradient(90deg, transparent 0 4px, #6aa05d 4px 26px, transparent 26px),
+        linear-gradient(90deg, transparent 0 12px, #7a5a38 12px 18px, transparent 18px);
+      background-size: 100% 13px, 100% 15px, 100% 16px;
+      background-position: 0 2px, 0 14px, 0 28px;
+      background-repeat: no-repeat;
+    }
+
+    .pixel-sprite.tree-a {
+      left: 4%;
+      top: 5%;
+    }
+
+    .pixel-sprite.tree-b {
+      right: 3%;
+      bottom: 5%;
+    }
+
+    .pixel-sprite.sign {
+      left: 72%;
+      top: 50%;
+      width: 34px;
+      height: 42px;
+      background:
+        linear-gradient(90deg, #f4bd45 0 30px, transparent 30px),
+        linear-gradient(90deg, transparent 0 13px, #7a5a38 13px 19px, transparent 19px);
+      background-size: 100% 18px, 100% 24px;
+      background-position: 0 3px, 0 21px;
+      background-repeat: no-repeat;
     }
 
     .space {
@@ -342,12 +477,13 @@
       display: grid;
       place-items: center;
       border: 3px solid var(--line);
-      border-radius: 8px;
+      border-radius: 3px;
       background: #fff4d5;
       color: var(--ink);
       font-size: 17px;
       font-weight: 900;
-      box-shadow: 0 4px 0 rgba(43,38,48,.22);
+      box-shadow: 0 4px 0 rgba(43,38,48,.22), inset 0 -8px 0 rgba(43,38,48,.11), inset 0 5px 0 rgba(255,255,255,.28);
+      z-index: 4;
     }
 
     .space.start { background: #f4bd45; }
@@ -357,6 +493,9 @@
     .space.home { background: #d7b269; }
     .space.family { background: #df8fa8; }
     .space.choice { background: #76a3d7; }
+    .space.investment { background: #62b789; }
+    .space.upgrade { background: #b995d6; }
+    .space.goal { background: #f0c05a; }
     .space.finish { background: #f5df62; }
 
     .space-label {
@@ -379,10 +518,10 @@
       width: 18px;
       height: 18px;
       border: 2px solid var(--line);
-      border-radius: 50%;
+      border-radius: 3px 3px 6px 6px;
       translate: -50% -50%;
       z-index: 10;
-      box-shadow: 0 2px 0 rgba(43,38,48,.28);
+      box-shadow: 0 2px 0 rgba(43,38,48,.28), inset 4px 4px 0 rgba(255,255,255,.25), inset -4px -4px 0 rgba(43,38,48,.18);
       transition: left .25s ease, top .25s ease;
     }
 
@@ -475,9 +614,10 @@
     .happening,
     .next-player {
       border: 2px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 4px;
       background: #fff8df;
       padding: 8px;
+      box-shadow: inset 0 -4px 0 rgba(43,38,48,.08);
     }
 
     .status-tile small,
@@ -553,7 +693,7 @@
       max-height: 126px;
       overflow: auto;
       border: 2px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 4px;
       background: #fff8df;
       padding: 8px;
       font-size: 13px;
@@ -575,7 +715,7 @@
       display: grid;
       gap: 5px;
       border: 2px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 4px;
       background: #fff0c4;
       padding: 8px;
       opacity: .92;
@@ -624,7 +764,7 @@
       height: 10px;
       overflow: hidden;
       border: 2px solid var(--line);
-      border-radius: 999px;
+      border-radius: 3px;
       background: #f3dfb6;
     }
 
@@ -676,6 +816,45 @@
       gap: 8px;
     }
 
+    .result-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .result-tile {
+      border: 2px solid var(--line);
+      border-radius: 4px;
+      background: #fff8df;
+      padding: 8px;
+    }
+
+    .result-tile small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .result-tile strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 17px;
+      line-height: 1.05;
+      font-weight: 900;
+    }
+
+    .result-message {
+      border: 2px solid var(--line);
+      border-radius: 4px;
+      background: #ffe9ae;
+      padding: 10px;
+      font-weight: 900;
+      line-height: 1.3;
+    }
+
     .choice-btn {
       text-align: left;
       background: #fff8df;
@@ -713,6 +892,14 @@
       font-weight: 900;
     }
 
+    .rank small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -745,6 +932,16 @@
         width: clamp(32px, 8.5vw, 46px);
         font-size: 14px;
         border-width: 2px;
+      }
+
+      .pixel-sprite.car {
+        left: 28%;
+        top: 44%;
+      }
+
+      .pixel-sprite.sign {
+        left: 78%;
+        top: 47%;
       }
 
       .space-label {
@@ -910,6 +1107,45 @@
         border-width: 1px;
       }
 
+      .landmark.school::after,
+      .landmark.home::after,
+      .landmark.bank::after,
+      .landmark.park::after {
+        width: 5px;
+        height: 5px;
+        border-width: 1px;
+        top: 15px;
+      }
+
+      .landmark.park::after {
+        height: 9px;
+        top: 19px;
+      }
+
+      .pixel-sprite {
+        scale: .72;
+      }
+
+      .pixel-sprite.tree-a {
+        left: 2%;
+        top: 4%;
+      }
+
+      .pixel-sprite.tree-b {
+        right: 0;
+        bottom: 2%;
+      }
+
+      .pixel-sprite.car {
+        left: 24%;
+        top: 47%;
+      }
+
+      .pixel-sprite.sign {
+        left: 80%;
+        top: 43%;
+      }
+
       .landmark.school {
         left: 7%;
         top: 28%;
@@ -986,8 +1222,9 @@
           <label>
             Game length
             <select id="gameLength">
-              <option value="short" selected>Short road, about 10-15 minutes</option>
-              <option value="brisk">Brisk road, about 8-10 minutes</option>
+              <option value="quick">Quick road, about 3-5 minutes</option>
+              <option value="standard" selected>Standard road, about 10-15 minutes</option>
+              <option value="long">Long road, about 20-25 minutes</option>
             </select>
           </label>
           <button id="startGameBtn" class="start-btn" type="button">Start Journey</button>
@@ -1031,7 +1268,7 @@
         <div id="happening" class="happening">
           <small>Latest Happening</small>
           <strong id="happeningTitle">Journey started</strong>
-          <p id="happeningText">Tap Spin when it is your turn. Computer players will take their turns automatically.</p>
+          <p id="happeningText">Tap Spin when it is your turn, then review the result before the next player starts.</p>
         </div>
         <div class="actions">
           <button id="spinBtn" class="primary" type="button">Spin</button>
@@ -1059,6 +1296,32 @@
     </div>
   </div>
 
+  <div id="turnResultModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="turnResultTitle">
+    <div class="modal-card">
+      <h2 id="turnResultTitle">Turn Result</h2>
+      <p id="turnResultText" class="result-message"></p>
+      <div class="result-summary">
+        <div class="result-tile">
+          <small>Landed On</small>
+          <strong id="resultSpace">Start</strong>
+        </div>
+        <div class="result-tile">
+          <small>Money Change</small>
+          <strong id="resultMoney">$0</strong>
+        </div>
+        <div class="result-tile">
+          <small>Cash</small>
+          <strong id="resultCash">$0</strong>
+        </div>
+        <div class="result-tile">
+          <small>Net Worth</small>
+          <strong id="resultNet">$0</strong>
+        </div>
+      </div>
+      <button id="continueTurnBtn" class="start-btn" type="button">Continue</button>
+    </div>
+  </div>
+
   <div id="resultsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="resultsTitle">
     <div class="modal-card">
       <h2 id="resultsTitle">Final Standings</h2>
@@ -1078,6 +1341,9 @@
       home: "H",
       family: "+",
       choice: "?",
+      investment: "I",
+      upgrade: "^",
+      goal: "G",
       finish: "*"
     };
     const typeLabels = {
@@ -1088,30 +1354,64 @@
       home: "Home",
       family: "Family",
       choice: "Choice",
+      investment: "Invest",
+      upgrade: "Upgrade",
+      goal: "Goal",
       finish: "Finish"
     };
 
-    const boardTypes = [
-      "start", "choice", "career", "payday", "event", "home", "payday", "family",
-      "event", "career", "payday", "choice", "event", "home", "payday", "family",
-      "career", "event", "payday", "choice", "home", "event", "payday", "family",
-      "career", "event", "payday", "home", "choice", "payday", "event", "family",
-      "career", "payday", "home", "event", "choice", "payday", "family", "event",
-      "payday", "career", "finish", "finish"
+    const lengthConfigs = {
+      quick: {
+        spaces: 44,
+        spinner: [1, 2, 3, 4, 5, 6],
+        label: "Quick"
+      },
+      standard: {
+        spaces: 76,
+        spinner: [1, 1, 2, 2, 3, 4],
+        label: "Standard"
+      },
+      long: {
+        spaces: 112,
+        spinner: [1, 1, 2, 2, 3, 3, 4],
+        label: "Long"
+      }
+    };
+
+    const boardPattern = [
+      "choice", "career", "payday", "event", "home", "payday", "family", "investment",
+      "event", "career", "payday", "choice", "upgrade", "home", "payday", "family",
+      "career", "event", "payday", "goal", "choice", "home", "event", "payday",
+      "family", "investment", "career", "event", "payday", "home", "upgrade", "choice",
+      "payday", "event", "family", "career", "payday", "investment", "home", "event"
     ];
+
+    function buildBoard(mode) {
+      const config = lengthConfigs[mode] || lengthConfigs.standard;
+      const road = ["start"];
+      while (road.length < config.spaces - 2) {
+        road.push(boardPattern[(road.length - 1) % boardPattern.length]);
+      }
+      road.push("finish", "finish");
+      return road;
+    }
 
     const careers = {
       work: [
         { title: "Mechanic", salary: 52000, bonus: 2500 },
         { title: "Chef", salary: 56000, bonus: 3000 },
         { title: "Sales Lead", salary: 61000, bonus: 4500 },
-        { title: "Builder", salary: 65000, bonus: 3500 }
+        { title: "Builder", salary: 65000, bonus: 3500 },
+        { title: "Paramedic", salary: 59000, bonus: 4000 },
+        { title: "Shop Owner", salary: 68000, bonus: 5200 }
       ],
       educated: [
         { title: "Engineer", salary: 85000, bonus: 7000 },
         { title: "Nurse Practitioner", salary: 90000, bonus: 6000 },
         { title: "Designer", salary: 78000, bonus: 8500 },
-        { title: "Researcher", salary: 82000, bonus: 7500 }
+        { title: "Researcher", salary: 82000, bonus: 7500 },
+        { title: "Attorney", salary: 96000, bonus: 9000 },
+        { title: "Data Analyst", salary: 88000, bonus: 8200 }
       ]
     };
 
@@ -1132,7 +1432,52 @@
       { text: "Smart investment matures.", cash: 14000 },
       { text: "Vacation goes over budget.", cash: -6000 },
       { text: "Freelance project lands.", cash: 9000 },
-      { text: "Appliance replacement.", cash: -5000 }
+      { text: "Appliance replacement.", cash: -5000 },
+      { text: "Tax refund arrives.", cash: 8000 },
+      { text: "Storm damage repairs.", cash: -12000, insurable: true },
+      { text: "Mentor opens a career door.", cash: 6000 },
+      { text: "Utility bills spike.", cash: -4000 },
+      { text: "Neighborhood grant pays out.", cash: 11000 },
+      { text: "Minor legal paperwork.", cash: -7000, insurable: true }
+    ];
+
+    const goals = [
+      {
+        title: "Debt-Free Finish",
+        detail: "Finish with no debt for a bonus.",
+        bonus: 30000,
+        met: player => player.debt === 0
+      },
+      {
+        title: "Home Builder",
+        detail: "Own a home with at least one upgrade.",
+        bonus: 32000,
+        met: player => player.house && player.homeUpgrades > 0
+      },
+      {
+        title: "Family Roots",
+        detail: "Finish with a partner and at least two children.",
+        bonus: 34000,
+        met: player => player.partner && player.children >= 2
+      },
+      {
+        title: "Career Climber",
+        detail: "Reach a salary of at least $95,000.",
+        bonus: 30000,
+        met: player => player.salary >= 95000
+      },
+      {
+        title: "Investor",
+        detail: "Build at least $45,000 in investments.",
+        bonus: 33000,
+        met: player => player.investments >= 45000
+      },
+      {
+        title: "Entrepreneur",
+        detail: "Start a business before the finish.",
+        bonus: 28000,
+        met: player => player.business
+      }
     ];
 
     const state = {
@@ -1142,14 +1487,17 @@
       spinAngle: 0,
       busy: false,
       difficulty: "normal",
-      boardTypes: boardTypes.slice(),
+      lengthMode: "standard",
+      spinnerValues: lengthConfigs.standard.spinner.slice(),
+      boardTypes: buildBoard("standard"),
       phase: "Ready",
       lastSpin: "-",
       latest: {
         title: "Journey started",
         text: "Tap Spin when it is your turn. Computer players will take their turns automatically.",
         amount: 0
-      }
+      },
+      turnResult: null
     };
 
     const setupScreen = document.querySelector("#setupScreen");
@@ -1182,6 +1530,14 @@
     const modalTitle = document.querySelector("#modalTitle");
     const modalText = document.querySelector("#modalText");
     const choiceList = document.querySelector("#choiceList");
+    const turnResultModal = document.querySelector("#turnResultModal");
+    const turnResultTitle = document.querySelector("#turnResultTitle");
+    const turnResultText = document.querySelector("#turnResultText");
+    const resultSpace = document.querySelector("#resultSpace");
+    const resultMoney = document.querySelector("#resultMoney");
+    const resultCash = document.querySelector("#resultCash");
+    const resultNet = document.querySelector("#resultNet");
+    const continueTurnBtn = document.querySelector("#continueTurnBtn");
     const resultsModal = document.querySelector("#resultsModal");
     const resultsList = document.querySelector("#resultsList");
     const playAgainBtn = document.querySelector("#playAgainBtn");
@@ -1199,8 +1555,17 @@
     }
 
     function netWorth(player) {
-      const homeValue = player.house ? player.house.value : 0;
-      return player.cash + homeValue - player.debt;
+      const homeValue = player.house ? player.house.value + player.homeUpgrades * 18000 : 0;
+      return player.cash + player.investments + homeValue + goalBonus(player) - player.debt;
+    }
+
+    function goalBonus(player) {
+      if (player.goalCollected || !player.goal || !player.goal.met(player)) return 0;
+      return player.goal.bonus;
+    }
+
+    function randomItem(items) {
+      return items[Math.floor(Math.random() * items.length)];
     }
 
     function makePlayer(index, mode, name) {
@@ -1216,6 +1581,13 @@
         career: null,
         educated: false,
         house: null,
+        insurance: false,
+        investments: 0,
+        skillLevel: 0,
+        business: false,
+        homeUpgrades: 0,
+        goal: goals[index % goals.length],
+        goalCollected: false,
         partner: false,
         children: 0,
         finished: false,
@@ -1265,6 +1637,7 @@
 
     function renderBoard() {
       board.innerHTML = "";
+      board.className = `board ${state.lengthMode}-road`;
       spaceCount.textContent = state.boardTypes.length;
 
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -1278,12 +1651,27 @@
       }).join(" ");
       poly.setAttribute("points", points);
       poly.setAttribute("fill", "none");
-      poly.setAttribute("stroke", "#3b3130");
-      poly.setAttribute("stroke-width", "3.4");
-      poly.setAttribute("stroke-linecap", "round");
+      poly.setAttribute("stroke", "#5f5550");
+      poly.setAttribute("stroke-width", "5.8");
+      poly.setAttribute("stroke-linecap", "square");
       poly.setAttribute("stroke-linejoin", "round");
       svg.appendChild(poly);
+      const center = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      center.setAttribute("points", points);
+      center.setAttribute("fill", "none");
+      center.setAttribute("stroke", "#fff4d5");
+      center.setAttribute("stroke-width", "1");
+      center.setAttribute("stroke-dasharray", "2 4");
+      center.setAttribute("stroke-linecap", "butt");
+      center.setAttribute("stroke-linejoin", "round");
+      svg.appendChild(center);
       board.appendChild(svg);
+
+      ["tree-a", "tree-b", "car", "sign"].forEach(className => {
+        const sprite = document.createElement("div");
+        sprite.className = `pixel-sprite ${className}`;
+        board.appendChild(sprite);
+      });
 
       [
         ["school", "School"],
@@ -1361,6 +1749,11 @@
             <span>${player.house ? player.house.title : "No home"}</span>
             <span>${player.partner ? "Partner" : "Solo"} · ${player.children} kids</span>
           </div>
+          <div class="stats">
+            <span>Invest ${money(player.investments)}</span>
+            <span>${player.insurance ? "Insured" : "No insurance"}</span>
+            <span>${player.goal ? `${player.goal.title} ${goalBonus(player) ? "met" : "open"}` : "No goal"}</span>
+          </div>
           <div class="progress-track" aria-label="${player.name} road progress">
             <div class="progress-fill" style="--progress:${progress}%"></div>
           </div>
@@ -1399,6 +1792,9 @@
 
     function addLog(text, title = "Update", amount = 0) {
       state.latest = { title, text, amount };
+      if (state.turnResult && amount !== 0) {
+        state.turnResult.amount += amount;
+      }
       const item = document.createElement("p");
       item.innerHTML = `<strong>${title}:</strong> ${text}`;
       if (amount !== 0) {
@@ -1410,6 +1806,58 @@
       log.prepend(item);
       while (log.children.length > 8) log.lastElementChild.remove();
       renderTurn();
+    }
+
+    function beginTurnResult(player) {
+      state.turnResult = {
+        playerName: player.name,
+        startCash: player.cash,
+        startDebt: player.debt,
+        startNet: netWorth(player),
+        amount: 0,
+        title: "Movement",
+        text: `${player.name} moved down the road.`,
+        space: typeLabels[state.boardTypes[player.position]] || "Road"
+      };
+    }
+
+    function updateTurnResultFromLatest(player) {
+      if (!state.turnResult) return;
+      state.turnResult.title = state.latest.title;
+      state.turnResult.text = state.latest.text;
+      state.turnResult.space = typeLabels[state.boardTypes[player.position]] || "Road";
+      state.turnResult.endCash = player.cash;
+      state.turnResult.endDebt = player.debt;
+      state.turnResult.endNet = netWorth(player);
+    }
+
+    function showTurnResult(player) {
+      updateTurnResultFromLatest(player);
+      const result = state.turnResult;
+      return new Promise(resolve => {
+        turnResultTitle.textContent = `${player.name}'s Turn Result`;
+        turnResultText.textContent = result.text;
+        resultSpace.textContent = result.space;
+        resultMoney.textContent = result.amount === 0 ? "$0" : `${result.amount > 0 ? "+" : ""}${money(result.amount)}`;
+        resultMoney.className = `money ${result.amount >= 0 ? "good" : "bad"}`;
+        resultCash.textContent = money(player.cash);
+        resultNet.textContent = money(netWorth(player));
+        continueTurnBtn.textContent = player.mode === "computer" ? "Continuing..." : "Continue";
+        continueTurnBtn.disabled = player.mode === "computer";
+        turnResultModal.classList.add("active");
+
+        const finish = () => {
+          turnResultModal.classList.remove("active");
+          continueTurnBtn.removeEventListener("click", finish);
+          continueTurnBtn.disabled = false;
+          continueTurnBtn.textContent = "Continue";
+          state.turnResult = null;
+          resolve();
+        };
+
+        continueTurnBtn.addEventListener("click", finish);
+        if (player.mode === "computer") window.setTimeout(finish, 1600);
+      });
     }
 
     function peekNextPlayer() {
@@ -1474,6 +1922,23 @@
         }
         if (choice.kind === "family") {
           score += state.difficulty === "hard" ? choice.value : choice.value * .75;
+        }
+        if (choice.kind === "insurance") {
+          score += player.insurance ? -20000 : 14000;
+        }
+        if (choice.kind === "investment") {
+          score += state.difficulty === "hard" ? choice.value * 1.35 : choice.value;
+          if (player.cash < 25000) score -= 15000;
+        }
+        if (choice.kind === "training") {
+          score += player.salary ? player.salary * .45 : 12000;
+        }
+        if (choice.kind === "business") {
+          score += player.business ? -15000 : 22000;
+          if (player.cash < 35000) score -= 20000;
+        }
+        if (choice.kind === "upgrade") {
+          score += player.house ? 24000 + player.homeUpgrades * 6000 : -12000;
         }
         if (score > bestScore) {
           best = choice;
@@ -1565,30 +2030,135 @@
     async function choiceSpace(player) {
       const choices = [
         { label: "Side Venture", detail: "Risk $8,000 for a possible $26,000 return.", kind: "risk", value: state.difficulty === "hard" ? 11000 : 7000, action: "venture" },
-        { label: "Play It Steady", detail: "Take a guaranteed $7,000.", kind: "safe", value: 7000, action: "steady" }
+        { label: "Play It Steady", detail: "Take a guaranteed $7,000.", kind: "safe", value: 7000, action: "steady" },
+        { label: "Buy Insurance", detail: "Pay $6,000 now to soften future repair, storm, and paperwork losses.", kind: "insurance", value: player.insurance ? -5000 : 9000, action: "insurance" },
+        { label: "Launch Business", detail: "Pay $18,000. Future paydays add a business dividend.", kind: "business", value: player.business ? -5000 : 18000, action: "business" }
       ];
       const choice = await setupChoices(`${player.name}'s Crossroad`, "Pick a financial move.", choices, player);
       if (choice.action === "venture") {
         const success = Math.random() > .42;
         player.cash += success ? 26000 : -8000;
         addLog(success ? `${player.name}'s side venture paid off.` : `${player.name}'s side venture lost money.`, "Crossroad", success ? 26000 : -8000);
-      } else {
+      } else if (choice.action === "steady") {
         player.cash += 7000;
         addLog(`${player.name} banked a steady choice.`, "Crossroad", 7000);
+      } else if (choice.action === "insurance") {
+        if (player.insurance) {
+          player.cash += 4000;
+          addLog(`${player.name} reviewed coverage and received a rebate.`, "Insurance", 4000);
+        } else {
+          player.insurance = true;
+          player.cash -= 6000;
+          addLog(`${player.name} bought insurance for future setbacks.`, "Insurance", -6000);
+        }
+      } else if (choice.action === "business") {
+        if (player.business) {
+          player.cash += 9000;
+          addLog(`${player.name}'s business found a new customer.`, "Business", 9000);
+        } else {
+          player.business = true;
+          player.cash -= 18000;
+          addLog(`${player.name} launched a small business.`, "Business", -18000);
+        }
       }
       clampCash(player);
     }
 
+    async function investmentSpace(player) {
+      const choices = [
+        { label: "Index Fund", detail: "Invest $12,000 and immediately add $16,000 to your portfolio.", kind: "investment", value: 4000, action: "index" },
+        { label: "Speculative Bet", detail: "Risk $10,000 for a chance to add $32,000 to your portfolio.", kind: "investment", value: state.difficulty === "hard" ? 12000 : 7000, action: "speculate" },
+        { label: "Hold Cash", detail: "Keep cash flexible and take a $4,000 savings bonus.", kind: "safe", value: 4000, action: "hold" }
+      ];
+      const choice = await setupChoices(`${player.name}'s Investment`, "Choose how to handle extra money.", choices, player);
+      if (choice.action === "index") {
+        player.cash -= 12000;
+        player.investments += 16000;
+        addLog(`${player.name} added to a steady investment fund.`, "Investment", -12000);
+      } else if (choice.action === "speculate") {
+        const success = Math.random() > .48;
+        player.cash -= 10000;
+        if (success) player.investments += 32000;
+        addLog(success ? `${player.name}'s investment jumped.` : `${player.name}'s investment missed.`, "Investment", success ? 22000 : -10000);
+      } else {
+        player.cash += 4000;
+        addLog(`${player.name} held cash and saved a little extra.`, "Investment", 4000);
+      }
+      clampCash(player);
+    }
+
+    async function upgradeSpace(player) {
+      const choices = [
+        { label: "Skill Training", detail: "Pay $9,000 to raise salary and career bonuses.", kind: "training", value: 18000, action: "training" },
+        { label: "Home Upgrade", detail: "Pay $14,000 to improve final home value.", kind: "upgrade", value: player.house ? 22000 : -4000, action: "home" },
+        { label: "Pay Down Debt", detail: "Use $12,000 cash to reduce debt.", kind: "safe", value: player.debt > 0 ? 12000 : 3000, action: "debt" }
+      ];
+      const choice = await setupChoices(`${player.name}'s Upgrade`, "Improve your long-term position.", choices, player);
+      if (choice.action === "training") {
+        player.skillLevel += 1;
+        player.cash -= 9000;
+        if (player.salary) player.salary += 6000;
+        if (player.career) player.career = { ...player.career, salary: player.salary, bonus: player.career.bonus + 1200 };
+        addLog(`${player.name} completed skill training.`, "Upgrade", -9000);
+      } else if (choice.action === "home") {
+        if (player.house) {
+          player.homeUpgrades += 1;
+          player.cash -= 14000;
+          addLog(`${player.name} upgraded their home.`, "Home Upgrade", -14000);
+        } else {
+          player.cash += 3000;
+          addLog(`${player.name} planned for a future home and saved a deposit.`, "Home Upgrade", 3000);
+        }
+      } else {
+        const amount = Math.min(12000, player.cash, player.debt);
+        player.cash -= amount;
+        player.debt -= amount;
+        addLog(amount ? `${player.name} paid down debt.` : `${player.name} had no debt to pay.`, "Debt", amount ? -amount : 0);
+      }
+      clampCash(player);
+    }
+
+    async function goalSpace(player) {
+      const choices = [
+        { label: "Pursue Goal", detail: `${player.goal.title}: ${player.goal.detail} Bonus ${money(player.goal.bonus)}.`, kind: "goal", value: player.goal.bonus, action: "goal" },
+        { label: "Take Milestone Cash", detail: "Take $10,000 now instead of changing your goal.", kind: "safe", value: 10000, action: "cash" }
+      ];
+      if (!goalBonus(player)) {
+        choices.push({ label: "New Goal", detail: "Draw a different personal objective.", kind: "goal", value: 14000, action: "new" });
+      }
+      const choice = await setupChoices(`${player.name}'s Goal`, "Check your personal objective.", choices, player);
+      if (choice.action === "goal") {
+        if (goalBonus(player)) {
+          player.cash += 8000;
+          addLog(`${player.name} is already on track for ${player.goal.title}.`, "Goal", 8000);
+        } else {
+          player.cash += 5000;
+          addLog(`${player.name} recommitted to ${player.goal.title}.`, "Goal", 5000);
+        }
+      } else if (choice.action === "new") {
+        const available = goals.filter(goal => goal.title !== player.goal.title);
+        player.goal = randomItem(available);
+        addLog(`${player.name} drew a new goal: ${player.goal.title}.`, "Goal");
+      } else {
+        player.cash += 10000;
+        addLog(`${player.name} took milestone cash.`, "Goal", 10000);
+      }
+    }
+
     function payday(player) {
-      const amount = Math.round((player.salary || 48000) / 4);
+      const amount = Math.round((player.salary || 48000) / 4) + (player.business ? 5000 : 0);
       player.cash += amount;
-      addLog(`${player.name} collected a quarterly payday.`, "Payday", amount);
+      addLog(`${player.name} collected a quarterly payday${player.business ? " plus a business dividend" : ""}.`, "Payday", amount);
     }
 
     function eventSpace(player) {
-      const event = events[Math.floor(Math.random() * events.length)];
-      player.cash += event.cash;
-      addLog(`${player.name}: ${event.text}`, "Event", event.cash);
+      const event = randomItem(events);
+      let amount = event.cash;
+      if (amount < 0 && player.insurance && event.insurable) {
+        amount = Math.round(amount * .35);
+      }
+      player.cash += amount;
+      addLog(`${player.name}: ${event.text}${amount !== event.cash ? " Insurance softened the loss." : ""}`, "Event", amount);
       clampCash(player);
     }
 
@@ -1597,8 +2167,9 @@
         await chooseCareer(player);
         return;
       }
-      player.cash += player.career.bonus;
-      addLog(`${player.name}'s ${player.career.title} bonus paid out.`, "Career Bonus", player.career.bonus);
+      const bonus = player.career.bonus + player.skillLevel * 1200;
+      player.cash += bonus;
+      addLog(`${player.name}'s ${player.career.title} bonus paid out.`, "Career Bonus", bonus);
     }
 
     async function resolveSpace(player) {
@@ -1609,6 +2180,9 @@
       if (type === "home") await buyHouse(player);
       if (type === "family") await familyChoice(player);
       if (type === "choice") await choiceSpace(player);
+      if (type === "investment") await investmentSpace(player);
+      if (type === "upgrade") await upgradeSpace(player);
+      if (type === "goal") await goalSpace(player);
       if (type === "finish") finishPlayer(player);
       clampCash(player);
     }
@@ -1617,12 +2191,18 @@
       if (player.finished) return;
       player.finished = true;
       const familyBonus = (player.partner ? 12000 : 0) + player.children * 7000;
-      player.cash += familyBonus;
+      const finalGoalBonus = goalBonus(player);
+      let amount = familyBonus + finalGoalBonus;
       if (player.house) {
-        player.cash += player.house.value;
+        const homeSale = player.house.value + player.homeUpgrades * 18000;
+        amount += homeSale;
+        player.cash += homeSale;
         player.debt = Math.max(0, player.debt - player.house.cost);
+        player.house = null;
       }
-      addLog(`${player.name} reached the finish and tallied home value plus family bonuses.`, "Finish", familyBonus);
+      player.cash += familyBonus + finalGoalBonus;
+      player.goalCollected = true;
+      addLog(`${player.name} reached the finish and tallied home value, family bonuses, and goal bonuses.`, "Finish", amount);
     }
 
     async function takeTurn() {
@@ -1634,6 +2214,7 @@
       }
 
       state.busy = true;
+      beginTurnResult(player);
       setPhase(player.mode === "computer" ? "Computer thinking" : "Choose");
       renderTurn();
       if (player.turns === 0 && player.position === 0 && !player.career) {
@@ -1641,7 +2222,7 @@
       }
 
       setPhase("Spinning");
-      const spin = Math.floor(Math.random() * 6) + 1;
+      const spin = randomItem(state.spinnerValues);
       player.turns += 1;
       state.lastSpin = spin;
       state.spinAngle += 720 + spin * 60 + Math.floor(Math.random() * 30);
@@ -1656,7 +2237,9 @@
       setPhase(typeLabels[state.boardTypes[player.position]] || "Resolving");
       await resolveSpace(player);
       renderTurn();
-      await wait(player.mode === "computer" ? 650 : 900);
+      setPhase("Review");
+      await wait(250);
+      await showTurnResult(player);
       state.busy = false;
       if (state.players.every(p => p.finished)) {
         showResults();
@@ -1693,7 +2276,8 @@
       ranked.forEach((player, index) => {
         const row = document.createElement("div");
         row.className = "rank";
-        row.innerHTML = `<span>#${index + 1}</span><span>${player.name}</span><span>${money(netWorth(player))}</span>`;
+        const goalText = player.goal ? `${player.goal.title}${player.goalCollected ? " complete" : " missed"}` : "No goal";
+        row.innerHTML = `<span>#${index + 1}</span><span>${player.name}<small>${goalText}</small></span><span>${money(netWorth(player))}</span>`;
         resultsList.appendChild(row);
       });
       resultsModal.classList.add("active");
@@ -1717,6 +2301,7 @@
         document.querySelector('.mode[data-index="1"]').value = "computer";
         document.querySelector('.mode[data-index="2"]').value = "computer";
         for (let i = 3; i < 6; i += 1) document.querySelector(`.mode[data-index="${i}"]`).value = "off";
+        gameLength.value = "quick";
       }
       const players = collectPlayers();
       if (players.length < 2 || players.length > 6) {
@@ -1729,22 +2314,26 @@
       state.spinAngle = 0;
       state.busy = false;
       state.difficulty = difficulty.value;
-      state.boardTypes = gameLength.value === "brisk" ? boardTypes.slice(0, 36).concat(["finish"]) : boardTypes.slice();
+      state.lengthMode = gameLength.value;
+      state.spinnerValues = (lengthConfigs[state.lengthMode] || lengthConfigs.standard).spinner.slice();
+      state.boardTypes = buildBoard(state.lengthMode);
       state.phase = "Ready";
       state.lastSpin = "-";
       state.latest = {
         title: "Journey started",
-        text: "Tap Spin when it is your turn. Computer players will take their turns automatically.",
+        text: "Tap Spin when it is your turn, then review the result before the next player starts.",
         amount: 0
       };
+      state.turnResult = null;
       log.innerHTML = "";
       setupScreen.classList.remove("active");
       gameScreen.classList.add("active");
       resultsModal.classList.remove("active");
+      turnResultModal.classList.remove("active");
       spinValue.textContent = "-";
       renderBoard();
       renderTurn();
-      addLog("Tap Spin when it is your turn. The next player advances automatically after each turn.", "Journey Started");
+      addLog("Tap Spin when it is your turn, then tap Continue after reviewing the turn result.", "Journey Started");
       if (state.players[state.current].mode === "computer") window.setTimeout(takeTurn, 500);
     }
 
@@ -1752,6 +2341,7 @@
       state.busy = false;
       resultsModal.classList.remove("active");
       choiceModal.classList.remove("active");
+      turnResultModal.classList.remove("active");
       gameScreen.classList.remove("active");
       setupScreen.classList.add("active");
     }
