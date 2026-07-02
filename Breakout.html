@@ -327,9 +327,47 @@
     }
 
     .menu-grid,
+    .level-grid,
     .result-grid {
       display: grid;
       gap: 8px;
+    }
+
+    .level-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      max-height: min(54vh, 430px);
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .level-button {
+      min-height: 44px;
+      border-radius: 9px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.13);
+      color: var(--ink);
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      position: relative;
+    }
+
+    .level-button.complete {
+      color: #09131b;
+      background: linear-gradient(180deg, #90f5ba, #41c978);
+      border-color: rgba(127,240,172,0.8);
+    }
+
+    .level-button.current {
+      color: #09131b;
+      background: linear-gradient(180deg, #ffe98a, #ffbf3f);
+      border-color: rgba(255,225,112,0.9);
+    }
+
+    .level-button.locked {
+      color: rgba(239,248,255,0.35);
+      background: rgba(255,255,255,0.035);
+      border-color: rgba(255,255,255,0.07);
+      cursor: not-allowed;
     }
 
     .menu-row,
@@ -532,9 +570,9 @@
     <section class="status" aria-live="polite">
       <div class="status-head">
         <strong id="modeText">Ready</strong>
-        <span id="levelText" class="subtitle">20 hand-built levels</span>
+        <span id="levelText" class="subtitle">100 arcade levels</span>
       </div>
-      <p id="statusText" class="status-text">Tap Start Game, then drag anywhere on the board to move the paddle. Tap Launch to send the ball into play.</p>
+      <p id="statusText" class="status-text">Tap Start, then drag anywhere on the board to move the paddle. Tap Launch to send the ball into play.</p>
       <div class="combo-row">
         <span>Combo</span>
         <strong id="comboText">x1</strong>
@@ -564,9 +602,25 @@
         <div class="menu-row"><strong>Launch</strong><span>Serve the ball from the paddle.</span></div>
         <div class="menu-row"><strong>Power-ups</strong><span>Wide paddle, slow ball, multiball, and extra life.</span></div>
         <div class="menu-row"><strong>Bass line</strong><span>Brick hits, clears, and boss breaks all have audio cues.</span></div>
-        <div class="menu-row"><strong>Bosses</strong><span>Every fifth level turns into a heavier core stage.</span></div>
+        <div class="menu-row"><strong>Progress</strong><span id="progressSummary">100 levels. Level 1 unlocked.</span></div>
       </div>
-      <button id="startBtn" class="primary" type="button">Start Game</button>
+      <div class="controls" style="grid-template-columns: 1fr 1fr;">
+        <button id="newRunBtn" class="secondary" type="button">New Run</button>
+        <button id="startBtn" class="primary" type="button">Start Best</button>
+      </div>
+      <button id="levelSelectBtn" class="secondary" type="button">Select Level</button>
+    </div>
+  </div>
+
+  <div id="levelModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="levelSelectTitle">
+    <div class="modal-card">
+      <h2 id="levelSelectTitle">Levels</h2>
+      <p id="levelSelectText">Choose any unlocked level.</p>
+      <div class="level-grid" id="levelGrid"></div>
+      <div class="controls" style="grid-template-columns: 1fr 1fr;">
+        <button id="levelCloseBtn" class="secondary" type="button">Close</button>
+        <button id="levelBestBtn" class="primary" type="button">Start Best</button>
+      </div>
     </div>
   </div>
 
@@ -606,7 +660,7 @@
     const LOGICAL_H = 560;
     const COLS = 8;
     const ROWS = 10;
-    const MAX_LEVELS = 20;
+    const MAX_LEVELS = 100;
     const BRICK_GAP = 4;
     const BRICK_LEFT = 12;
     const BRICK_TOP = 58;
@@ -615,14 +669,20 @@
     const BALL_R = 6;
     const STAR_COUNT = 44;
     const STORAGE_KEY = "breakout-save-v1";
+    const PROGRESS_KEY = "breakout-progress-v2";
 
     const el = {
       canvas: document.getElementById("gameCanvas"),
       shell: document.getElementById("boardShell"),
       menu: document.getElementById("menu"),
+      levelModal: document.getElementById("levelModal"),
       resultModal: document.getElementById("resultModal"),
       gameOverModal: document.getElementById("gameOverModal"),
       startBtn: document.getElementById("startBtn"),
+      newRunBtn: document.getElementById("newRunBtn"),
+      levelSelectBtn: document.getElementById("levelSelectBtn"),
+      levelCloseBtn: document.getElementById("levelCloseBtn"),
+      levelBestBtn: document.getElementById("levelBestBtn"),
       launchBtn: document.getElementById("launchBtn"),
       pauseBtn: document.getElementById("pauseBtn"),
       restartBtn: document.getElementById("restartBtn"),
@@ -639,6 +699,9 @@
       statusText: document.getElementById("statusText"),
       comboText: document.getElementById("comboText"),
       progressBar: document.getElementById("progressBar"),
+      progressSummary: document.getElementById("progressSummary"),
+      levelSelectText: document.getElementById("levelSelectText"),
+      levelGrid: document.getElementById("levelGrid"),
       resultGrid: document.getElementById("resultGrid"),
       gameOverGrid: document.getElementById("gameOverGrid")
     };
@@ -657,6 +720,10 @@
       score: 0,
       lives: 3,
       highScore: Number(localStorage.getItem(STORAGE_KEY) || 0) || 0,
+      progress: {
+        highestUnlocked: 1,
+        completed: {}
+      },
       running: false,
       paused: false,
       serveReady: true,
@@ -705,10 +772,49 @@
     function readSave() {
       const current = Number(localStorage.getItem(STORAGE_KEY) || 0);
       if (current > state.highScore) state.highScore = current;
+      readProgress();
     }
 
     function saveHighScore() {
       localStorage.setItem(STORAGE_KEY, String(state.highScore));
+    }
+
+    function readProgress() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+        const highestUnlocked = clamp(Number(parsed.highestUnlocked) || 1, 1, MAX_LEVELS);
+        const completed = parsed.completed && typeof parsed.completed === "object" ? parsed.completed : {};
+        state.progress.highestUnlocked = highestUnlocked;
+        state.progress.completed = {};
+        Object.keys(completed).forEach(level => {
+          const numericLevel = Number(level);
+          if (Number.isInteger(numericLevel) && numericLevel >= 1 && numericLevel <= MAX_LEVELS && completed[level]) {
+            state.progress.completed[numericLevel] = true;
+          }
+        });
+      } catch (error) {
+        state.progress.highestUnlocked = 1;
+        state.progress.completed = {};
+      }
+    }
+
+    function saveProgress() {
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(state.progress));
+      updateProgressSummary();
+    }
+
+    function markLevelComplete(level) {
+      const completedLevel = clamp(level, 1, MAX_LEVELS);
+      state.progress.completed[completedLevel] = true;
+      state.progress.highestUnlocked = Math.max(state.progress.highestUnlocked, Math.min(MAX_LEVELS, completedLevel + 1));
+      saveProgress();
+    }
+
+    function updateProgressSummary() {
+      const completedCount = Object.keys(state.progress.completed).length;
+      el.progressSummary.textContent = `${completedCount}/${MAX_LEVELS} complete. Level ${state.progress.highestUnlocked} unlocked.`;
+      el.startBtn.textContent = `Start ${state.progress.highestUnlocked}`;
+      el.levelBestBtn.textContent = `Start ${state.progress.highestUnlocked}`;
     }
 
     function unlockAudio() {
@@ -976,9 +1082,9 @@
     }
 
     function resetLevel(level = state.level) {
-      state.level = level;
-      state.bossLevel = level % 5 === 0;
-      state.bricks = buildLevel(level);
+      state.level = clamp(level, 1, MAX_LEVELS);
+      state.bossLevel = state.level % 5 === 0;
+      state.bricks = buildLevel(state.level);
       state.initialBreakables = state.bricks.filter(brick => brick.breakable).length;
       state.powerups = [];
       state.particles = [];
@@ -994,23 +1100,26 @@
       updateHud();
       setStatus(`Level ${state.level} ready. Drag the paddle, then tap Launch.`, "Ready");
       renderMenuState();
+      renderLevelSelect();
       renderModalState();
       renderGameOverState();
     }
 
     function startGame(level = 1) {
       unlockAudio();
+      const startLevel = clamp(level, 1, state.progress.highestUnlocked);
       state.mode = "playing";
       state.running = true;
       state.paused = false;
-      state.level = level;
+      state.level = startLevel;
       state.score = 0;
       state.lives = 3;
       state.highScore = Math.max(state.highScore, Number(localStorage.getItem(STORAGE_KEY) || 0) || 0);
       el.menu.classList.remove("open");
+      el.levelModal.classList.remove("open");
       el.resultModal.classList.remove("open");
       el.gameOverModal.classList.remove("open");
-      resetLevel(level);
+      resetLevel(startLevel);
       setStatus("Launch the ball when you're ready. Drag anywhere on the board to move the paddle.", "Playing");
       if (state.running && !state.paused) requestAnimationFrame(loop);
     }
@@ -1075,6 +1184,62 @@
       const mag = Math.hypot(ball.vx, ball.vy) || 1;
       ball.vx = (ball.vx / mag) * speed;
       ball.vy = (ball.vy / mag) * speed;
+    }
+
+    function preventBallStall(ball) {
+      const speed = ball.speed * speedModifier();
+      const minX = speed * 0.14;
+      const minY = speed * 0.2;
+      if (Math.abs(ball.vx) < minX) {
+        ball.vx = (ball.vx < 0 ? -1 : 1) * minX;
+      }
+      if (Math.abs(ball.vy) < minY) {
+        ball.vy = (ball.vy < 0 ? -1 : 1) * minY;
+      }
+      applyBallSpeed(ball);
+    }
+
+    function resolveBrickCollision(ball, brick, prevX, prevY) {
+      const fromLeft = prevX + ball.r <= brick.x;
+      const fromRight = prevX - ball.r >= brick.x + brick.w;
+      const fromTop = prevY + ball.r <= brick.y;
+      const fromBottom = prevY - ball.r >= brick.y + brick.h;
+
+      if (fromLeft) {
+        ball.x = brick.x - ball.r - 0.2;
+        ball.vx = -Math.abs(ball.vx);
+      } else if (fromRight) {
+        ball.x = brick.x + brick.w + ball.r + 0.2;
+        ball.vx = Math.abs(ball.vx);
+      } else if (fromTop) {
+        ball.y = brick.y - ball.r - 0.2;
+        ball.vy = -Math.abs(ball.vy);
+      } else if (fromBottom) {
+        ball.y = brick.y + brick.h + ball.r + 0.2;
+        ball.vy = Math.abs(ball.vy);
+      } else {
+        const leftOverlap = Math.abs((ball.x + ball.r) - brick.x);
+        const rightOverlap = Math.abs((brick.x + brick.w) - (ball.x - ball.r));
+        const topOverlap = Math.abs((ball.y + ball.r) - brick.y);
+        const bottomOverlap = Math.abs((brick.y + brick.h) - (ball.y - ball.r));
+        const minOverlap = Math.min(leftOverlap, rightOverlap, topOverlap, bottomOverlap);
+
+        if (minOverlap === leftOverlap) {
+          ball.x = brick.x - ball.r - 0.2;
+          ball.vx = -Math.abs(ball.vx);
+        } else if (minOverlap === rightOverlap) {
+          ball.x = brick.x + brick.w + ball.r + 0.2;
+          ball.vx = Math.abs(ball.vx);
+        } else if (minOverlap === topOverlap) {
+          ball.y = brick.y - ball.r - 0.2;
+          ball.vy = -Math.abs(ball.vy);
+        } else {
+          ball.y = brick.y + brick.h + ball.r + 0.2;
+          ball.vy = Math.abs(ball.vy);
+        }
+      }
+
+      preventBallStall(ball);
     }
 
     function bounceFromPaddle(ball) {
@@ -1145,7 +1310,6 @@
 
     function hitBrick(brick, ball) {
       if (!brick.breakable) {
-        ball.vy *= -1;
         state.shake = 6;
         spawnParticles(ball.x, ball.y, ["#c2d3df", "#8ea3b5", "#5c6a78"], 6, 0.8);
         playSound("boss");
@@ -1185,6 +1349,7 @@
     }
 
     function showLevelClear() {
+      markLevelComplete(state.level);
       playSound("clear");
       el.resultGrid.innerHTML = "";
       const rows = [
@@ -1225,6 +1390,7 @@
       state.running = false;
       state.paused = false;
       renderMenuState();
+      renderLevelSelect();
     }
 
     function nextLevel() {
@@ -1315,18 +1481,23 @@
 
         ball.x += ball.vx * delta;
         ball.y += ball.vy * delta;
+        const prevX = ball.x - ball.vx * delta;
+        const prevY = ball.y - ball.vy * delta;
 
         if (ball.x - ball.r <= 0 && ball.vx < 0) {
           ball.x = ball.r;
           ball.vx *= -1;
+          preventBallStall(ball);
         }
         if (ball.x + ball.r >= LOGICAL_W && ball.vx > 0) {
           ball.x = LOGICAL_W - ball.r;
           ball.vx *= -1;
+          preventBallStall(ball);
         }
         if (ball.y - ball.r <= 0 && ball.vy < 0) {
           ball.y = ball.r;
           ball.vy *= -1;
+          preventBallStall(ball);
         }
 
         const paddleRect = {
@@ -1349,19 +1520,7 @@
         }
 
         if (collision) {
-          const centerX = collision.x + collision.w / 2;
-          const centerY = collision.y + collision.h / 2;
-          const dx = ball.x - centerX;
-          const dy = ball.y - centerY;
-          if (Math.abs(dx) > Math.abs(dy)) {
-            ball.vx *= -1;
-          } else {
-            ball.vy *= -1;
-          }
-          const speed = ball.speed * speedModifier();
-          const mag = Math.hypot(ball.vx, ball.vy) || 1;
-          ball.vx = (ball.vx / mag) * speed;
-          ball.vy = (ball.vy / mag) * speed;
+          resolveBrickCollision(ball, collision, prevX, prevY);
           hitBrick(collision, ball);
         }
       });
@@ -1602,11 +1761,45 @@
     }
 
     function renderMenuState() {
+      updateProgressSummary();
       if (state.mode === "menu") {
         el.menu.classList.add("open");
       } else {
         el.menu.classList.remove("open");
       }
+    }
+
+    function renderLevelSelect() {
+      updateProgressSummary();
+      el.levelSelectText.textContent = state.progress.highestUnlocked === 1
+        ? "Level 1 is unlocked. Completed levels are green."
+        : `Choose levels 1-${state.progress.highestUnlocked}. Completed levels are green.`;
+      el.levelGrid.innerHTML = "";
+      for (let level = 1; level <= MAX_LEVELS; level += 1) {
+        const button = document.createElement("button");
+        const unlocked = level <= state.progress.highestUnlocked;
+        button.type = "button";
+        button.className = "level-button";
+        button.textContent = String(level);
+        button.disabled = !unlocked;
+        if (!unlocked) button.classList.add("locked");
+        if (state.progress.completed[level]) button.classList.add("complete");
+        if (level === state.progress.highestUnlocked && unlocked) button.classList.add("current");
+        button.setAttribute("aria-label", unlocked ? `Start level ${level}` : `Level ${level} locked`);
+        button.addEventListener("click", () => {
+          if (unlocked) startGame(level);
+        });
+        el.levelGrid.appendChild(button);
+      }
+    }
+
+    function openLevelSelect() {
+      renderLevelSelect();
+      el.levelModal.classList.add("open");
+    }
+
+    function closeLevelSelect() {
+      el.levelModal.classList.remove("open");
     }
 
     function renderModalState() {
@@ -1634,10 +1827,11 @@
       state.lastTs = 0;
       el.pauseBtn.textContent = "Pause";
       el.menu.classList.add("open");
+      el.levelModal.classList.remove("open");
       el.resultModal.classList.remove("open");
       el.gameOverModal.classList.remove("open");
       resetLevel(1);
-      setStatus("Tap Start Game to begin a fresh run.", "Ready");
+      setStatus("Tap Start to continue from your highest unlocked level.", "Ready");
     }
 
     function handlePointerDown(evt) {
@@ -1671,7 +1865,7 @@
     function keyHandler(evt) {
       if (evt.key === " " || evt.key === "Enter") {
         evt.preventDefault();
-        if (state.mode === "menu") startGame(1);
+        if (state.mode === "menu") startGame(state.progress.highestUnlocked);
         else if (state.mode === "playing") launchBall();
         return;
       }
@@ -1694,6 +1888,10 @@
         replayLevel,
         restartRun,
         clearToMenu,
+        openLevelSelect,
+        closeLevelSelect,
+        saveProgress,
+        readProgress,
         advanceFrames(frames = 1, delta = 1 / 60) {
           for (let i = 0; i < frames; i += 1) {
             update(delta);
@@ -1714,6 +1912,17 @@
         },
         setLevel(level) {
           resetLevel(level);
+        },
+        unlockThrough(level) {
+          state.progress.highestUnlocked = clamp(level, 1, MAX_LEVELS);
+          saveProgress();
+          renderLevelSelect();
+        },
+        resetProgress() {
+          state.progress.highestUnlocked = 1;
+          state.progress.completed = {};
+          saveProgress();
+          renderLevelSelect();
         },
         smashBrickChain(count = 3) {
           let hits = 0;
@@ -1742,7 +1951,11 @@
       };
     }
 
-    el.startBtn.addEventListener("click", () => startGame(1));
+    el.startBtn.addEventListener("click", () => startGame(state.progress.highestUnlocked));
+    el.newRunBtn.addEventListener("click", () => startGame(1));
+    el.levelSelectBtn.addEventListener("click", openLevelSelect);
+    el.levelCloseBtn.addEventListener("click", closeLevelSelect);
+    el.levelBestBtn.addEventListener("click", () => startGame(state.progress.highestUnlocked));
     el.launchBtn.addEventListener("click", launchBall);
     el.pauseBtn.addEventListener("click", pauseGame);
     el.restartBtn.addEventListener("click", restartRun);
@@ -1763,6 +1976,7 @@
     resetLevel(1);
     resizeCanvas();
     renderMenuState();
+    renderLevelSelect();
     updateHud();
   </script>
 </body>
