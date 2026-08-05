@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>L-Pool Rummy</title>
+  <style>
+    :root {
+      --ink: #152033;
+      --muted: #63718a;
+      --paper: #fffdf8;
+      --panel: rgba(255, 255, 255, 0.9);
+      --line: rgba(30, 45, 78, 0.14);
+      --pool: #13b5c8;
+      --pool-dark: #057b93;
+      --sun: #ffcf3f;
+      --coral: #ff6f61;
+      --lime: #56c271;
+      --violet: #7c5cff;
+      --felt: #0e9f8f;
+      --shadow: rgba(9, 33, 55, 0.2);
+      --danger: #d9304f;
+      --success: #158f54;
+      --card-w: clamp(47px, 12.2vw, 72px);
+      --card-h: calc(var(--card-w) * 1.38);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 10%, rgba(255, 207, 63, 0.45), transparent 25%),
+        radial-gradient(circle at 90% 15%, rgba(255, 111, 97, 0.34), transparent 24%),
+        linear-gradient(145deg, #d8fbff 0%, #f6fff0 44%, #fff1d9 100%);
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    button, select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 11px 13px;
+      color: var(--ink);
+      background: #ffffff;
+      box-shadow: 0 7px 18px rgba(9, 33, 55, 0.12);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--sun), #ff9f43);
+      color: #2b2100;
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .danger {
+      color: #fff;
+      background: var(--danger);
+    }
+
+    .app {
+      width: min(1120px, 100%);
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: 10px;
+      display: grid;
+      grid-template-rows: auto auto auto 1fr auto auto;
+      gap: 9px;
+    }
+
+    .topbar, .roundbar, .table, .actionbar, .hand-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 38px var(--shadow);
+      backdrop-filter: blur(13px);
+    }
+
+    .topbar {
+      border-radius: 20px;
+      padding: 11px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, var(--pool), var(--violet));
+      color: #fff;
+      font-weight: 950;
+      box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.12);
+      flex: 0 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.18rem, 5vw, 1.8rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.2;
+    }
+
+    .status-chip {
+      display: grid;
+      place-items: center;
+      min-width: 58px;
+      min-height: 44px;
+      border-radius: 15px;
+      background: #eafffb;
+      color: var(--pool-dark);
+      font-weight: 950;
+      border: 1px solid rgba(19, 181, 200, 0.22);
+    }
+
+    .roundbar {
+      border-radius: 18px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .round-meta {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .contract {
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.25;
+    }
+
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .score-card {
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.62);
+      padding: 8px;
+      min-width: 0;
+    }
+
+    .score-card.active {
+      outline: 3px solid rgba(255, 207, 63, 0.62);
+      background: #fff9dc;
+    }
+
+    .score-card.out {
+      background: #eefbf4;
+      border-color: rgba(21, 143, 84, 0.26);
+    }
+
+    .score-name {
+      display: flex;
+      justify-content: space-between;
+      gap: 7px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .table {
+      border-radius: 22px;
+      padding: 10px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.88), rgba(255,255,255,.74)),
+        radial-gradient(circle at 30% 10%, rgba(86, 194, 113, 0.28), transparent 32%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .pile-area {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 9px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .deck, .discard {
+      width: var(--card-w);
+      height: var(--card-h);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-weight: 950;
+      border: 2px solid rgba(21, 32, 51, 0.14);
+      box-shadow: 0 9px 18px rgba(9, 33, 55, 0.16);
+    }
+
+    .deck {
+      color: #fff;
+      background:
+        linear-gradient(45deg, rgba(255,255,255,.16) 25%, transparent 25% 50%, rgba(255,255,255,.16) 50% 75%, transparent 75%),
+        linear-gradient(135deg, var(--pool), var(--violet));
+      background-size: 18px 18px, auto;
+    }
+
+    .discard {
+      background: #fff;
+    }
+
+    .pile-buttons {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .pile-buttons button {
+      padding: 10px 9px;
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .melds {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 8px;
+    }
+
+    .meld-row {
+      min-height: 62px;
+      border-radius: 15px;
+      border: 1px dashed rgba(21, 32, 51, 0.22);
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .meld-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 5px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 850;
+    }
+
+    .mini-cards, .meld-cards {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .mini-card {
+      width: 30px;
+      height: 42px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      background: #fff;
+      border: 1px solid rgba(21, 32, 51, 0.16);
+      font-weight: 950;
+      font-size: 0.76rem;
+      box-shadow: 0 3px 7px rgba(9, 33, 55, 0.12);
+    }
+
+    .hand-panel {
+      border-radius: 22px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .hand-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .hand {
+      min-height: calc(var(--card-h) + 18px);
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 7px 3px 12px;
+      scroll-snap-type: x proximity;
+    }
+
+    .card {
+      width: var(--card-w);
+      height: var(--card-h);
+      flex: 0 0 auto;
+      border-radius: 12px;
+      background: var(--paper);
+      border: 2px solid rgba(21, 32, 51, 0.14);
+      box-shadow: 0 8px 17px rgba(9, 33, 55, 0.16);
+      position: relative;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 6px;
+      scroll-snap-align: start;
+      user-select: none;
+    }
+
+    .card.selected {
+      transform: translateY(-8px);
+      outline: 3px solid var(--sun);
+    }
+
+    .card .rank {
+      font-size: clamp(1rem, 4.8vw, 1.55rem);
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .card .suit {
+      place-self: center;
+      font-size: clamp(1.3rem, 7vw, 2rem);
+      line-height: 1;
+    }
+
+    .card .corner {
+      justify-self: end;
+      font-size: 0.8rem;
+      font-weight: 950;
+    }
+
+    .red { color: #cf2444; }
+    .black { color: #182135; }
+    .joker {
+      color: #fff;
+      background: linear-gradient(145deg, var(--coral), var(--violet));
+    }
+
+    .actionbar {
+      border-radius: 20px;
+      padding: 9px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .actionbar button {
+      padding: 10px 7px;
+      min-height: 44px;
+      border-radius: 13px;
+      font-size: 0.85rem;
+    }
+
+    .message {
+      border-radius: 18px;
+      padding: 10px 12px;
+      background: rgba(21, 32, 51, 0.88);
+      color: #fff;
+      min-height: 45px;
+      display: grid;
+      align-items: center;
+      font-weight: 750;
+      line-height: 1.3;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      place-items: center;
+      background: rgba(11, 24, 42, 0.42);
+      padding: 14px;
+    }
+
+    .overlay.open {
+      display: grid;
+    }
+
+    .modal {
+      width: min(520px, 100%);
+      max-height: 92svh;
+      overflow: auto;
+      border-radius: 24px;
+      background: #fffdf8;
+      box-shadow: 0 26px 70px rgba(4, 22, 38, 0.34);
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,.7);
+    }
+
+    .modal h2 {
+      margin: 0 0 8px;
+      font-size: 1.45rem;
+      letter-spacing: 0;
+    }
+
+    .setup-grid, .modal-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+      font-weight: 850;
+    }
+
+    .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .rules {
+      border-radius: 16px;
+      padding: 10px;
+      background: #effbfc;
+      color: var(--pool-dark);
+      line-height: 1.35;
+      font-size: 0.9rem;
+    }
+
+    .buy-list, .round-results {
+      display: grid;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .buy-option, .result-row {
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (min-width: 760px) {
+      .app {
+        grid-template-columns: 330px 1fr;
+        grid-template-rows: auto auto 1fr auto;
+      }
+
+      .topbar, .roundbar, .actionbar, .message {
+        grid-column: 1;
+      }
+
+      .table {
+        grid-column: 2;
+        grid-row: 1 / 5;
+      }
+
+      .hand-panel {
+        grid-column: 1 / -1;
+      }
+
+      .scores {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="topbar">
+      <div class="brand">
+        <div class="logo">LP</div>
+        <div>
+          <h1>L-Pool Rummy</h1>
+          <div class="subtitle">Bright, streamlined Liverpool-style rummy.</div>
+        </div>
+      </div>
+      <button id="menuBtn" class="secondary" type="button">Menu</button>
+    </section>
+
+    <section class="roundbar">
+      <div class="round-meta">
+        <div>
+          <div class="contract" id="contractText">Round 1</div>
+          <div class="small" id="turnText">Start a game to deal cards.</div>
+        </div>
+        <div class="status-chip" id="phaseChip">Setup</div>
+      </div>
+      <div class="scores" id="scoreList"></div>
+    </section>
+
+    <section class="actionbar">
+      <button id="sortRankBtn" class="secondary" type="button">Sort Rank</button>
+      <button id="sortSuitBtn" class="secondary" type="button">Sort Suit</button>
+      <button id="suggestBtn" class="secondary" type="button">Suggest</button>
+      <button id="layDownBtn" class="primary" type="button">Lay Down</button>
+      <button id="hitBtn" class="secondary" type="button">Hit Meld</button>
+      <button id="discardBtn" class="danger" type="button">Discard</button>
+    </section>
+
+    <section class="message" id="message">Open the menu and start a game.</section>
+
+    <section class="table">
+      <div class="pile-area">
+        <button id="stockBtn" class="deck" type="button" aria-label="Draw stock">Pool</button>
+        <div class="pile-buttons">
+          <button id="drawStockBtn" class="primary" type="button">Draw Stock</button>
+          <div class="small" id="stockText">0 cards</div>
+        </div>
+      </div>
+      <div class="pile-area">
+        <button id="discardTopBtn" class="discard" type="button" aria-label="Draw discard"></button>
+        <div class="pile-buttons">
+          <button id="drawDiscardBtn" class="secondary" type="button">Take Discard</button>
+          <div class="small" id="discardText">Empty discard</div>
+        </div>
+      </div>
+      <div class="melds" id="melds"></div>
+    </section>
+
+    <section class="hand-panel">
+      <div class="hand-head">
+        <div>
+          <strong>Your Hand</strong>
+          <div class="small" id="handHelp">Tap cards to select them.</div>
+        </div>
+        <div class="small" id="selectedText">0 selected</div>
+      </div>
+      <div class="hand" id="hand"></div>
+    </section>
+  </main>
+
+  <div class="overlay open" id="setupOverlay">
+    <div class="modal">
+      <h2>L-Pool Rummy</h2>
+      <div class="rules">
+        Make the round contract, lay it down on your turn, then empty your hand. Jokers are wild. Out-of-turn buying takes the discard plus one penalty card.
+      </div>
+      <div class="setup-grid" style="margin-top: 12px;">
+        <label class="field">Computer opponents
+          <select id="opponentSelect">
+            <option value="1">1 opponent</option>
+            <option value="2" selected>2 opponents</option>
+            <option value="3">3 opponents</option>
+          </select>
+        </label>
+        <label class="field">Difficulty
+          <select id="difficultySelect">
+            <option value="easy">Easy</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
+        <label class="field">Game length
+          <select id="roundCountSelect">
+            <option value="5" selected>5 rounds</option>
+            <option value="7">7 rounds</option>
+          </select>
+        </label>
+        <button id="startBtn" class="primary" type="button">Deal New Game</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="buyOverlay">
+    <div class="modal">
+      <h2>Buy Opportunity</h2>
+      <p class="small" id="buyText"></p>
+      <div class="buy-list" id="buyList"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="roundOverlay">
+    <div class="modal">
+      <h2 id="roundTitle">Round Complete</h2>
+      <div class="round-results" id="roundResults"></div>
+      <div class="modal-actions">
+        <button id="nextRoundBtn" class="primary" type="button">Next Round</button>
+        <button id="newGameModalBtn" class="secondary" type="button">New Game</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUITS = ["♠", "♥", "♦", "♣"];
+    const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const RANK_VALUE = { A: 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, J: 11, Q: 12, K: 13 };
+    const SCORE_VALUE = { A: 15, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, J: 10, Q: 10, K: 10, Joker: 25 };
+    const CONTRACTS = [
+      { label: "two sets of 3", req: [{ type: "set", size: 3 }, { type: "set", size: 3 }] },
+      { label: "one set of 3 + one run of 4", req: [{ type: "set", size: 3 }, { type: "run", size: 4 }] },
+      { label: "two runs of 4", req: [{ type: "run", size: 4 }, { type: "run", size: 4 }] },
+      { label: "three sets of 3", req: [{ type: "set", size: 3 }, { type: "set", size: 3 }, { type: "set", size: 3 }] },
+      { label: "two sets of 3 + one run of 4", req: [{ type: "set", size: 3 }, { type: "set", size: 3 }, { type: "run", size: 4 }] },
+      { label: "one set of 4 + two runs of 4", req: [{ type: "set", size: 4 }, { type: "run", size: 4 }, { type: "run", size: 4 }] },
+      { label: "three runs of 4", req: [{ type: "run", size: 4 }, { type: "run", size: 4 }, { type: "run", size: 4 }] }
+    ];
+
+    const el = {
+      setupOverlay: document.querySelector("#setupOverlay"),
+      buyOverlay: document.querySelector("#buyOverlay"),
+      roundOverlay: document.querySelector("#roundOverlay"),
+      opponentSelect: document.querySelector("#opponentSelect"),
+      difficultySelect: document.querySelector("#difficultySelect"),
+      roundCountSelect: document.querySelector("#roundCountSelect"),
+      startBtn: document.querySelector("#startBtn"),
+      menuBtn: document.querySelector("#menuBtn"),
+      contractText: document.querySelector("#contractText"),
+      turnText: document.querySelector("#turnText"),
+      phaseChip: document.querySelector("#phaseChip"),
+      scoreList: document.querySelector("#scoreList"),
+      message: document.querySelector("#message"),
+      stockText: document.querySelector("#stockText"),
+      discardText: document.querySelector("#discardText"),
+      discardTopBtn: document.querySelector("#discardTopBtn"),
+      stockBtn: document.querySelector("#stockBtn"),
+      drawStockBtn: document.querySelector("#drawStockBtn"),
+      drawDiscardBtn: document.querySelector("#drawDiscardBtn"),
+      melds: document.querySelector("#melds"),
+      hand: document.querySelector("#hand"),
+      handHelp: document.querySelector("#handHelp"),
+      selectedText: document.querySelector("#selectedText"),
+      sortRankBtn: document.querySelector("#sortRankBtn"),
+      sortSuitBtn: document.querySelector("#sortSuitBtn"),
+      suggestBtn: document.querySelector("#suggestBtn"),
+      layDownBtn: document.querySelector("#layDownBtn"),
+      hitBtn: document.querySelector("#hitBtn"),
+      discardBtn: document.querySelector("#discardBtn"),
+      buyText: document.querySelector("#buyText"),
+      buyList: document.querySelector("#buyList"),
+      roundTitle: document.querySelector("#roundTitle"),
+      roundResults: document.querySelector("#roundResults"),
+      nextRoundBtn: document.querySelector("#nextRoundBtn"),
+      newGameModalBtn: document.querySelector("#newGameModalBtn")
+    };
+
+    const state = {
+      players: [],
+      stock: [],
+      discard: [],
+      current: 0,
+      round: 1,
+      totalRounds: 5,
+      difficulty: "normal",
+      selected: new Set(),
+      phase: "setup",
+      hasDrawn: false,
+      pendingBuy: null,
+      roundStarter: 0,
+      message: "Open the menu and start a game."
+    };
+
+    function makeDeck() {
+      const deck = [];
+      let id = 1;
+      for (let d = 0; d < 2; d += 1) {
+        SUITS.forEach(suit => {
+          RANKS.forEach(rank => deck.push({ id: `c${id++}`, rank, suit }));
+        });
+        deck.push({ id: `c${id++}`, rank: "Joker", suit: "★", joker: true });
+        deck.push({ id: `c${id++}`, rank: "Joker", suit: "★", joker: true });
+      }
+      return shuffle(deck);
+    }
+
+    function shuffle(items) {
+      const copy = items.slice();
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function newPlayer(name, human = false) {
+      return { name, human, hand: [], score: 0, melds: [], laidDown: false };
+    }
+
+    function startGame() {
+      const opponents = Number(el.opponentSelect.value);
+      state.totalRounds = Number(el.roundCountSelect.value);
+      state.difficulty = el.difficultySelect.value;
+      state.players = [newPlayer("You", true)];
+      ["Marina", "Sunny", "Dock"].slice(0, opponents).forEach(name => state.players.push(newPlayer(name)));
+      state.round = 1;
+      state.roundStarter = 0;
+      el.setupOverlay.classList.remove("open");
+      startRound();
+    }
+
+    function startRound() {
+      state.stock = makeDeck();
+      state.discard = [];
+      state.selected.clear();
+      state.hasDrawn = false;
+      state.phase = "draw";
+      state.current = state.roundStarter % state.players.length;
+      state.players.forEach(player => {
+        player.hand = [];
+        player.melds = [];
+        player.laidDown = false;
+      });
+      const dealCount = 10 + Math.min(state.round, 4);
+      for (let i = 0; i < dealCount; i += 1) {
+        state.players.forEach(player => player.hand.push(drawStockRaw()));
+      }
+      state.discard.push(drawStockRaw());
+      sortHand(state.players[0].hand, "rank");
+      setMessage(`Round ${state.round}: make ${currentContract().label}. ${currentPlayer().name} starts.`);
+      render();
+      if (!currentPlayer().human) scheduleAI();
+    }
+
+    function currentContract() {
+      return CONTRACTS[state.round - 1];
+    }
+
+    function currentPlayer() {
+      return state.players[state.current];
+    }
+
+    function drawStockRaw() {
+      if (!state.stock.length) {
+        const top = state.discard.pop();
+        state.stock = shuffle(state.discard);
+        state.discard = top ? [top] : [];
+      }
+      return state.stock.pop();
+    }
+
+    function topDiscard() {
+      return state.discard[state.discard.length - 1];
+    }
+
+    function setMessage(text) {
+      state.message = text;
+      el.message.textContent = text;
+    }
+
+    function cardColor(card) {
+      if (card.joker) return "joker";
+      return card.suit === "♥" || card.suit === "♦" ? "red" : "black";
+    }
+
+    function cardLabel(card) {
+      return card.joker ? "Joker" : `${card.rank}${card.suit}`;
+    }
+
+    function cardHtml(card, mini = false, staticCard = false) {
+      if (!card) return "";
+      if (mini) return `<span class="mini-card ${cardColor(card)}">${card.joker ? "★" : card.rank + card.suit}</span>`;
+      if (staticCard) return `
+        <span class="rank">${card.joker ? "J" : card.rank}</span>
+        <span class="suit">${card.joker ? "★" : card.suit}</span>
+        <span class="corner">${card.joker ? "WILD" : card.rank + card.suit}</span>`;
+      return `
+        <button class="card ${cardColor(card)}${state.selected.has(card.id) ? " selected" : ""}" type="button" data-id="${card.id}">
+          <span class="rank">${card.joker ? "J" : card.rank}</span>
+          <span class="suit">${card.joker ? "★" : card.suit}</span>
+          <span class="corner">${card.joker ? "WILD" : card.rank + card.suit}</span>
+        </button>`;
+    }
+
+    function render() {
+      if (!state.players.length) {
+        el.contractText.textContent = "Choose a game setup";
+        el.turnText.textContent = "Start a game to deal cards.";
+        el.phaseChip.textContent = "Setup";
+        el.scoreList.innerHTML = "";
+        el.stockText.textContent = "0 cards";
+        el.discardText.textContent = "Empty discard";
+        el.discardTopBtn.className = "discard";
+        el.discardTopBtn.innerHTML = "";
+        el.melds.innerHTML = `<div class="meld-row"><div class="small">No game in progress.</div></div>`;
+        el.hand.innerHTML = "";
+        el.selectedText.textContent = "0 selected";
+        el.handHelp.textContent = "Tap cards to select them.";
+        el.message.textContent = state.message;
+        updateControls();
+        return;
+      }
+      const contract = currentContract();
+      const player = currentPlayer();
+      el.contractText.textContent = `Round ${state.round}/${state.totalRounds}: ${contract.label}`;
+      el.turnText.textContent = `${player.name}'s turn • ${state.hasDrawn ? "discard to finish" : "draw or take discard"}`;
+      el.phaseChip.textContent = player.human ? "Your Turn" : "AI Turn";
+      el.scoreList.innerHTML = state.players.map((p, i) => `
+        <div class="score-card ${i === state.current ? "active" : ""} ${p.laidDown ? "out" : ""}">
+          <div class="score-name"><span>${p.name}</span><span>${p.score}</span></div>
+          <div class="small">${p.hand.length} cards • ${p.laidDown ? "laid down" : "building"}</div>
+        </div>`).join("");
+      el.stockText.textContent = `${state.stock.length} cards`;
+      el.discardText.textContent = topDiscard() ? `Top discard: ${cardLabel(topDiscard())}` : "Empty discard";
+      el.discardTopBtn.className = `discard ${topDiscard() ? cardColor(topDiscard()) : ""}`;
+      el.discardTopBtn.innerHTML = topDiscard() ? cardHtml(topDiscard(), false, true) : "";
+      el.melds.innerHTML = state.players.map((p, playerIndex) => `
+        <div class="meld-row">
+          <div class="meld-head"><span>${p.name}'s melds</span><span>${p.melds.length ? "open" : "none"}</span></div>
+          <div class="meld-cards">
+            ${p.melds.length ? p.melds.map((meld, meldIndex) => `
+              <button class="secondary" type="button" data-hit="${playerIndex}:${meldIndex}">
+                ${meld.kind.toUpperCase()} ${meld.cards.map(card => cardHtml(card, true)).join("")}
+              </button>`).join("") : `<span class="small">No cards laid down.</span>`}
+          </div>
+        </div>`).join("");
+      renderHand();
+      updateControls();
+    }
+
+    function renderHand() {
+      const human = state.players[0];
+      el.hand.innerHTML = human.hand.map(card => cardHtml(card)).join("");
+      el.selectedText.textContent = `${state.selected.size} selected`;
+      el.handHelp.textContent = human.laidDown ? "Select cards to hit open melds or discard." : "Select contract cards, then tap Lay Down.";
+    }
+
+    function updateControls() {
+      if (!state.players.length) {
+        [el.drawStockBtn, el.stockBtn, el.drawDiscardBtn, el.discardTopBtn, el.discardBtn, el.layDownBtn, el.hitBtn, el.sortRankBtn, el.sortSuitBtn, el.suggestBtn].forEach(button => {
+          button.disabled = true;
+        });
+        return;
+      }
+      const humanTurn = currentPlayer().human;
+      el.drawStockBtn.disabled = !humanTurn || state.hasDrawn;
+      el.stockBtn.disabled = el.drawStockBtn.disabled;
+      el.drawDiscardBtn.disabled = !humanTurn || state.hasDrawn || !topDiscard();
+      el.discardTopBtn.disabled = el.drawDiscardBtn.disabled;
+      el.discardBtn.disabled = !humanTurn || !state.hasDrawn || state.selected.size !== 1;
+      el.layDownBtn.disabled = !humanTurn || !state.hasDrawn || state.players[0].laidDown || state.selected.size < 3;
+      el.hitBtn.disabled = !humanTurn || !state.hasDrawn || !state.players[0].laidDown || state.selected.size !== 1 || !hasAnyOpenMeld();
+      el.sortRankBtn.disabled = !state.players.length;
+      el.sortSuitBtn.disabled = !state.players.length;
+      el.suggestBtn.disabled = !state.players.length || !humanTurn;
+    }
+
+    function hasAnyOpenMeld() {
+      return state.players.some(p => p.melds.length);
+    }
+
+    function drawStock() {
+      if (!currentPlayer().human || state.hasDrawn) return;
+      currentPlayer().hand.push(drawStockRaw());
+      state.hasDrawn = true;
+      setMessage("You drew from the pool. Discard one card to finish your turn.");
+      render();
+    }
+
+    function drawDiscard() {
+      if (!currentPlayer().human || state.hasDrawn || !topDiscard()) return;
+      currentPlayer().hand.push(state.discard.pop());
+      state.hasDrawn = true;
+      setMessage("You took the discard. Discard one card when ready.");
+      render();
+    }
+
+    function selectedCards(player = state.players[0]) {
+      return player.hand.filter(card => state.selected.has(card.id));
+    }
+
+    function removeCards(player, cards) {
+      const ids = new Set(cards.map(card => card.id));
+      player.hand = player.hand.filter(card => !ids.has(card.id));
+    }
+
+    function layDownSelected() {
+      const player = state.players[0];
+      const groups = findContractGroups(selectedCards(player), currentContract().req);
+      if (!groups) {
+        setMessage("Those selected cards do not satisfy this round's contract.");
+        return;
+      }
+      removeCards(player, groups.flatMap(group => group.cards));
+      player.melds = groups.map(group => ({ kind: group.req.type, cards: group.cards.slice() }));
+      player.laidDown = true;
+      state.selected.clear();
+      setMessage("Contract complete. Now you can add cards to any open meld.");
+      render();
+      checkRoundEnd(player);
+    }
+
+    function hitSelected() {
+      const card = selectedCards()[0];
+      if (!card) return;
+      let best = null;
+      state.players.forEach((player, pi) => {
+        player.melds.forEach((meld, mi) => {
+          if (canHit(meld, card)) best = { player, meld, pi, mi };
+        });
+      });
+      if (!best) {
+        setMessage(`${cardLabel(card)} does not fit an open meld.`);
+        return;
+      }
+      best.meld.cards.push(card);
+      removeCards(state.players[0], [card]);
+      state.selected.clear();
+      setMessage(`Added ${cardLabel(card)} to ${best.player.name}'s ${best.meld.kind}.`);
+      render();
+      checkRoundEnd(state.players[0]);
+    }
+
+    function discardSelected() {
+      const player = state.players[0];
+      const card = selectedCards(player)[0];
+      if (!card || !state.hasDrawn) return;
+      removeCards(player, [card]);
+      state.discard.push(card);
+      state.selected.clear();
+      setMessage(`You discarded ${cardLabel(card)}.`);
+      render();
+      if (checkRoundEnd(player)) return;
+      maybeOfferBuys(() => nextTurn());
+    }
+
+    function nextTurn() {
+      state.current = (state.current + 1) % state.players.length;
+      state.hasDrawn = false;
+      render();
+      if (currentPlayer().human) {
+        setMessage("Your turn. Draw from the pool or take the discard.");
+      } else {
+        scheduleAI();
+      }
+    }
+
+    function maybeOfferBuys(done) {
+      const card = topDiscard();
+      if (!card || state.stock.length < 1) {
+        done();
+        return;
+      }
+      const buyers = [];
+      for (let offset = 1; offset < state.players.length; offset += 1) {
+        const index = (state.current + offset) % state.players.length;
+        const player = state.players[index];
+        if (wantsBuy(player, card)) buyers.push({ player, index });
+      }
+      if (!buyers.length) {
+        done();
+        return;
+      }
+      const humanBuyer = buyers.find(item => item.player.human);
+      if (humanBuyer) {
+        showBuyPrompt(card, humanBuyer, () => {
+          const aiBuyer = buyers.find(item => !item.player.human);
+          if (aiBuyer) performBuy(aiBuyer.player, card);
+          done();
+        });
+      } else {
+        performBuy(buyers[0].player, card);
+        done();
+      }
+    }
+
+    function showBuyPrompt(card, buyer, done) {
+      el.buyText.textContent = `${cardLabel(card)} is available. Buy it out of turn and take one penalty card?`;
+      el.buyList.innerHTML = `
+        <div class="buy-option"><span>You want ${cardLabel(card)}</span><button class="primary" id="acceptBuyBtn" type="button">Buy</button></div>
+        <div class="buy-option"><span>Pass this discard</span><button class="secondary" id="passBuyBtn" type="button">Pass</button></div>`;
+      el.buyOverlay.classList.add("open");
+      document.querySelector("#acceptBuyBtn").onclick = () => {
+        el.buyOverlay.classList.remove("open");
+        performBuy(buyer.player, card);
+        done();
+      };
+      document.querySelector("#passBuyBtn").onclick = () => {
+        el.buyOverlay.classList.remove("open");
+        done();
+      };
+    }
+
+    function performBuy(player, card) {
+      const bought = state.discard.pop();
+      if (bought) player.hand.push(bought);
+      const penalty = drawStockRaw();
+      if (penalty) player.hand.push(penalty);
+      setMessage(`${player.name} bought ${cardLabel(card)} and took a penalty card.`);
+      render();
+    }
+
+    function wantsBuy(player, card) {
+      if (!card) return false;
+      if (player.human) return usefulCardScore(player, card) >= 6;
+      const threshold = state.difficulty === "easy" ? 8 : state.difficulty === "hard" ? 4 : 6;
+      return usefulCardScore(player, card) >= threshold;
+    }
+
+    function usefulCardScore(player, card) {
+      if (card.joker) return 10;
+      let sameRank = player.hand.filter(c => !c.joker && c.rank === card.rank).length;
+      let nearRun = player.hand.filter(c => !c.joker && c.suit === card.suit && Math.abs(RANK_VALUE[c.rank] - RANK_VALUE[card.rank]) <= 2).length;
+      if (player.laidDown && player.melds.some(meld => canHit(meld, card))) return 9;
+      return sameRank * 3 + nearRun * 2;
+    }
+
+    function scheduleAI() {
+      setMessage(`${currentPlayer().name} is thinking.`);
+      window.setTimeout(aiTurn, 650);
+    }
+
+    function aiTurn() {
+      const player = currentPlayer();
+      if (player.human) return;
+      const discard = topDiscard();
+      if (discard && wantsTakeDiscard(player, discard)) {
+        player.hand.push(state.discard.pop());
+        setMessage(`${player.name} took the discard.`);
+      } else {
+        player.hand.push(drawStockRaw());
+        setMessage(`${player.name} drew from the pool.`);
+      }
+      if (!player.laidDown) {
+        const groups = findContractInHand(player.hand, currentContract().req);
+        if (groups) {
+          removeCards(player, groups.flatMap(group => group.cards));
+          player.melds = groups.map(group => ({ kind: group.req.type, cards: group.cards.slice() }));
+          player.laidDown = true;
+          setMessage(`${player.name} laid down their contract.`);
+        }
+      }
+      if (player.laidDown) {
+        let changed = true;
+        while (changed) {
+          changed = false;
+          for (const card of player.hand.slice()) {
+            const target = firstHittableMeld(card);
+            if (target) {
+              target.meld.cards.push(card);
+              removeCards(player, [card]);
+              changed = true;
+            }
+          }
+        }
+      }
+      const discardCard = chooseDiscard(player);
+      removeCards(player, [discardCard]);
+      state.discard.push(discardCard);
+      render();
+      if (checkRoundEnd(player)) return;
+      maybeOfferBuys(() => nextTurn());
+    }
+
+    function wantsTakeDiscard(player, card) {
+      const base = usefulCardScore(player, card);
+      const threshold = state.difficulty === "easy" ? 7 : state.difficulty === "hard" ? 4 : 5;
+      return base >= threshold;
+    }
+
+    function firstHittableMeld(card) {
+      for (const player of state.players) {
+        for (const meld of player.melds) {
+          if (canHit(meld, card)) return { player, meld };
+        }
+      }
+      return null;
+    }
+
+    function chooseDiscard(player) {
+      const protectedIds = new Set();
+      const contractGroups = findBestPartialGroups(player.hand);
+      contractGroups.forEach(card => protectedIds.add(card.id));
+      const candidates = player.hand.filter(card => !protectedIds.has(card.id));
+      const pool = candidates.length ? candidates : player.hand;
+      return pool.slice().sort((a, b) => penaltyValue(a) - penaltyValue(b))[0];
+    }
+
+    function penaltyValue(card) {
+      return SCORE_VALUE[card.rank] || 25;
+    }
+
+    function findBestPartialGroups(hand) {
+      const keep = [];
+      const byRank = new Map();
+      hand.filter(c => !c.joker).forEach(card => {
+        if (!byRank.has(card.rank)) byRank.set(card.rank, []);
+        byRank.get(card.rank).push(card);
+      });
+      byRank.forEach(cards => {
+        if (cards.length >= 2) keep.push(...cards);
+      });
+      SUITS.forEach(suit => {
+        const suited = hand.filter(c => !c.joker && c.suit === suit).sort((a, b) => RANK_VALUE[a.rank] - RANK_VALUE[b.rank]);
+        for (let i = 0; i < suited.length - 1; i += 1) {
+          if (RANK_VALUE[suited[i + 1].rank] - RANK_VALUE[suited[i].rank] <= 2) keep.push(suited[i], suited[i + 1]);
+        }
+      });
+      hand.filter(c => c.joker).forEach(card => keep.push(card));
+      return keep;
+    }
+
+    function checkRoundEnd(player) {
+      if (player.hand.length > 0) return false;
+      scoreRound(player);
+      return true;
+    }
+
+    function scoreRound(winner) {
+      state.players.forEach(player => {
+        const penalty = player === winner ? 0 : player.hand.reduce((sum, card) => sum + penaltyValue(card), 0);
+        player.lastPenalty = penalty;
+        player.score += penalty;
+      });
+      const final = state.round >= state.totalRounds;
+      el.roundTitle.textContent = final ? "Game Complete" : `Round ${state.round} Complete`;
+      const standings = state.players.slice().sort((a, b) => a.score - b.score);
+      el.roundResults.innerHTML = state.players.map(player => `
+        <div class="result-row">
+          <div><strong>${player.name}</strong><div class="small">${player === winner ? "went out" : `${player.hand.length} cards left`}</div></div>
+          <div><strong>+${player.lastPenalty}</strong><div class="small">Total ${player.score}</div></div>
+        </div>`).join("") + (final ? `
+        <div class="result-row">
+          <div><strong>Winner</strong><div class="small">Lowest total score</div></div>
+          <div><strong>${standings[0].name}</strong></div>
+        </div>` : "");
+      el.nextRoundBtn.textContent = final ? "Play Again" : "Next Round";
+      el.roundOverlay.classList.add("open");
+      render();
+    }
+
+    function nextRound() {
+      el.roundOverlay.classList.remove("open");
+      if (state.round >= state.totalRounds) {
+        el.setupOverlay.classList.add("open");
+        return;
+      }
+      state.round += 1;
+      state.roundStarter = (state.roundStarter + 1) % state.players.length;
+      startRound();
+    }
+
+    function sortHand(hand, mode) {
+      hand.sort((a, b) => {
+        if (a.joker && !b.joker) return 1;
+        if (!a.joker && b.joker) return -1;
+        if (a.joker && b.joker) return 0;
+        if (mode === "suit") {
+          const suitDiff = SUITS.indexOf(a.suit) - SUITS.indexOf(b.suit);
+          if (suitDiff) return suitDiff;
+        }
+        return RANK_VALUE[a.rank] - RANK_VALUE[b.rank] || SUITS.indexOf(a.suit) - SUITS.indexOf(b.suit);
+      });
+    }
+
+    function suggestSelection() {
+      const player = state.players[0];
+      state.selected.clear();
+      const groups = player.laidDown ? null : findContractInHand(player.hand, currentContract().req);
+      if (groups) {
+        groups.flatMap(group => group.cards).forEach(card => state.selected.add(card.id));
+        setMessage("Suggested cards for your contract are selected.");
+      } else {
+        const card = player.hand.find(item => player.laidDown && firstHittableMeld(item)) || chooseDiscard(player);
+        if (card) {
+          state.selected.add(card.id);
+          setMessage(player.laidDown ? "Suggested a card that can hit an open meld." : "No full contract found. Suggested a discard candidate.");
+        }
+      }
+      render();
+    }
+
+    function findContractInHand(hand, reqs) {
+      return findContractGroups(hand, reqs);
+    }
+
+    function findContractGroups(cards, reqs) {
+      const sortedReqs = reqs.slice().sort((a, b) => b.size - a.size || a.type.localeCompare(b.type));
+      return searchGroups(cards.slice(), sortedReqs, []);
+    }
+
+    function searchGroups(cards, reqs, groups) {
+      if (!reqs.length) return groups;
+      const [req, ...rest] = reqs;
+      const candidates = req.type === "set" ? setCandidates(cards, req.size) : runCandidates(cards, req.size);
+      for (const candidate of candidates) {
+        const ids = new Set(candidate.map(card => card.id));
+        const remaining = cards.filter(card => !ids.has(card.id));
+        const found = searchGroups(remaining, rest, groups.concat([{ req, cards: candidate }]));
+        if (found) return found;
+      }
+      return null;
+    }
+
+    function setCandidates(cards, size) {
+      const jokers = cards.filter(card => card.joker);
+      const groups = [];
+      RANKS.forEach(rank => {
+        const naturals = cards.filter(card => !card.joker && card.rank === rank);
+        if (naturals.length + jokers.length >= size && naturals.length > 0) {
+          groups.push(naturals.slice(0, size).concat(jokers.slice(0, Math.max(0, size - naturals.length))).slice(0, size));
+        }
+      });
+      return groups.sort((a, b) => countJokers(a) - countJokers(b));
+    }
+
+    function runCandidates(cards, size) {
+      const jokers = cards.filter(card => card.joker);
+      const groups = [];
+      SUITS.forEach(suit => {
+        const suited = cards.filter(card => !card.joker && card.suit === suit);
+        for (let start = 1; start <= 14 - size; start += 1) {
+          const run = [];
+          const used = new Set();
+          let jokerNeed = 0;
+          for (let value = start; value < start + size; value += 1) {
+            const natural = suited.find(card => RANK_VALUE[card.rank] === value && !used.has(card.id));
+            if (natural) {
+              run.push(natural);
+              used.add(natural.id);
+            } else {
+              jokerNeed += 1;
+            }
+          }
+          if (jokerNeed <= jokers.length && run.length > 0) {
+            groups.push(run.concat(jokers.slice(0, jokerNeed)));
+          }
+        }
+      });
+      return groups.sort((a, b) => countJokers(a) - countJokers(b));
+    }
+
+    function countJokers(cards) {
+      return cards.filter(card => card.joker).length;
+    }
+
+    function canHit(meld, card) {
+      if (card.joker) return true;
+      if (meld.kind === "set") {
+        const natural = meld.cards.find(item => !item.joker);
+        return !natural || natural.rank === card.rank;
+      }
+      const naturals = meld.cards.filter(item => !item.joker);
+      const suit = naturals[0]?.suit || card.suit;
+      if (card.suit !== suit) return false;
+      const values = naturals.map(item => RANK_VALUE[item.rank]);
+      return !values.length || cardValueTouchesRun(RANK_VALUE[card.rank], values, countJokers(meld.cards));
+    }
+
+    function cardValueTouchesRun(value, values, jokers) {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      if (value === min - 1 || value === max + 1) return true;
+      if (jokers > 0 && value >= min - jokers - 1 && value <= max + jokers + 1) return true;
+      return false;
+    }
+
+    el.startBtn.addEventListener("click", startGame);
+    el.menuBtn.addEventListener("click", () => el.setupOverlay.classList.add("open"));
+    el.newGameModalBtn.addEventListener("click", () => {
+      el.roundOverlay.classList.remove("open");
+      el.setupOverlay.classList.add("open");
+    });
+    el.nextRoundBtn.addEventListener("click", nextRound);
+    el.drawStockBtn.addEventListener("click", drawStock);
+    el.stockBtn.addEventListener("click", drawStock);
+    el.drawDiscardBtn.addEventListener("click", drawDiscard);
+    el.discardTopBtn.addEventListener("click", drawDiscard);
+    el.layDownBtn.addEventListener("click", layDownSelected);
+    el.hitBtn.addEventListener("click", hitSelected);
+    el.discardBtn.addEventListener("click", discardSelected);
+    el.sortRankBtn.addEventListener("click", () => {
+      sortHand(state.players[0].hand, "rank");
+      render();
+    });
+    el.sortSuitBtn.addEventListener("click", () => {
+      sortHand(state.players[0].hand, "suit");
+      render();
+    });
+    el.suggestBtn.addEventListener("click", suggestSelection);
+    el.hand.addEventListener("click", event => {
+      const card = event.target.closest(".card");
+      if (!card || !currentPlayer().human) return;
+      const id = card.dataset.id;
+      if (state.selected.has(id)) state.selected.delete(id);
+      else state.selected.add(id);
+      render();
+    });
+    el.melds.addEventListener("click", event => {
+      const target = event.target.closest("[data-hit]");
+      if (!target || !state.players[0].laidDown || state.selected.size !== 1) return;
+      const [pi, mi] = target.dataset.hit.split(":").map(Number);
+      const meld = state.players[pi].melds[mi];
+      const card = selectedCards()[0];
+      if (card && canHit(meld, card)) {
+        meld.cards.push(card);
+        removeCards(state.players[0], [card]);
+        state.selected.clear();
+        setMessage(`Added ${cardLabel(card)} to ${state.players[pi].name}'s meld.`);
+        render();
+        checkRoundEnd(state.players[0]);
+      } else {
+        setMessage("That card does not fit this meld.");
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
