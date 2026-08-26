@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minimalist Yahtzee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; }
+        .die-dot { background-color: #1e293b; border-radius: 50%; width: 10px; height: 10px; }
+        .die { transition: transform 0.2s, background-color 0.2s; }
+        .die.held { background-color: #e2e8f0; border: 2px solid #94a3b8; transform: translateY(4px); }
+        .die.rolling { animation: shake 0.3s infinite; }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            25% { transform: translate(-1px, -2px) rotate(-3deg); }
+            50% { transform: translate(-3px, 0px) rotate(3deg); }
+            75% { transform: translate(2px, 2px) rotate(-1deg); }
+            100% { transform: translate(1px, -1px) rotate(0deg); }
+        }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 h-[100dvh] w-full flex justify-center overflow-hidden">
+
+    <div id="app" class="w-full max-w-md h-full flex flex-col bg-white shadow-xl relative">
+        
+        <!-- SETUP SCREEN -->
+        <div id="setup-screen" class="flex-1 flex flex-col items-center justify-center p-6 space-y-8">
+            <h1 class="text-4xl font-light tracking-widest text-slate-900 uppercase">Yahtzee</h1>
+            <div class="w-full space-y-4">
+                <button onclick="startGame(1)" class="w-full py-4 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium hover:bg-slate-50 transition active:scale-95 shadow-sm">Single Player</button>
+                <button onclick="startGame(2)" class="w-full py-4 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium hover:bg-slate-50 transition active:scale-95 shadow-sm">2 Players</button>
+                <button onclick="startGame(3)" class="w-full py-4 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium hover:bg-slate-50 transition active:scale-95 shadow-sm">3 Players</button>
+                <button onclick="startGame(4)" class="w-full py-4 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium hover:bg-slate-50 transition active:scale-95 shadow-sm">4 Players</button>
+            </div>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+            <header class="p-4 border-b border-slate-100 flex justify-between items-center bg-white z-10 shrink-0">
+                <div>
+                    <h2 id="player-turn" class="text-lg font-semibold text-slate-800">Player 1</h2>
+                    <p id="round-info" class="text-xs text-slate-500 uppercase tracking-wide">Round 1 / 13</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-500 uppercase tracking-wide">Total Score</p>
+                    <p id="current-score" class="text-2xl font-light">0</p>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 pb-8">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Upper</h3>
+                        <div id="upper-scores" class="space-y-2"></div>
+                        <div class="mt-2 p-2 bg-slate-50 rounded-lg flex justify-between text-sm">
+                            <span class="text-slate-500">Bonus (>62)</span>
+                            <span id="upper-bonus" class="font-medium">0</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Lower</h3>
+                        <div id="lower-scores" class="space-y-2"></div>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="w-full bg-white border-t border-slate-100 p-4 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] shrink-0 z-20">
+                <div id="dice-container" class="flex justify-between mb-4 px-2"></div>
+                <button id="roll-btn" onclick="rollDice()" class="w-full py-4 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-800 transition active:scale-95 shadow-md flex items-center justify-center space-x-2 disabled:opacity-50 disabled:active:scale-100">
+                    <span id="roll-text">Roll Dice</span>
+                    <span id="rolls-left" class="bg-slate-700 text-xs px-2 py-1 rounded-md ml-2">3 Left</span>
+                </button>
+            </footer>
+        </div>
+
+        <!-- GAME OVER SCREEN -->
+        <div id="game-over-screen" class="hidden flex-1 flex flex-col items-center justify-center p-6 bg-white z-30 absolute inset-0">
+            <h1 class="text-3xl font-light text-slate-900 mb-8 uppercase tracking-widest">Game Over</h1>
+            <div id="final-standings" class="w-full space-y-3 mb-8"></div>
+            <button onclick="resetGame()" class="w-full py-4 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-800 transition active:scale-95 shadow-md">
+                Play Again
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        let players = [];
+        let currentPlayerIndex = 0;
+        let currentRound = 1;
+        let dice = Array.from({ length: 5 }, (_, i) => ({ id: i, value: 1, held: false }));
+        let rollsLeft = 3;
+        let hasRolled = false;
+
+        const CATEGORIES = {
+            ones: { id: 'ones', name: 'Ones', section: 'upper', calc: (d) => sumMatch(d, 1) },
+            twos: { id: 'twos', name: 'Twos', section: 'upper', calc: (d) => sumMatch(d, 2) },
+            threes: { id: 'threes', name: 'Threes', section: 'upper', calc: (d) => sumMatch(d, 3) },
+            fours: { id: 'fours', name: 'Fours', section: 'upper', calc: (d) => sumMatch(d, 4) },
+            fives: { id: 'fives', name: 'Fives', section: 'upper', calc: (d) => sumMatch(d, 5) },
+            sixes: { id: 'sixes', name: 'Sixes', section: 'upper', calc: (d) => sumMatch(d, 6) },
+            threeKind: { id: 'threeKind', name: '3 of a Kind', section: 'lower', calc: (d) => hasKind(d, 3) ? sumAll(d) : 0 },
+            fourKind: { id: 'fourKind', name: '4 of a Kind', section: 'lower', calc: (d) => hasKind(d, 4) ? sumAll(d) : 0 },
+            fullHouse: { id: 'fullHouse', name: 'Full House', section: 'lower', calc: (d) => isFullHouse(d) ? 25 : 0 },
+            smStraight: { id: 'smStraight', name: 'Sm Straight', section: 'lower', calc: (d) => isStraight(d, 4) ? 30 : 0 },
+            lgStraight: { id: 'lgStraight', name: 'Lg Straight', section: 'lower', calc: (d) => isStraight(d, 5) ? 40 : 0 },
+            yahtzee: { id: 'yahtzee', name: 'Yahtzee', section: 'lower', calc: (d) => hasKind(d, 5) ? 50 : 0 },
+            chance: { id: 'chance', name: 'Chance', section: 'lower', calc: (d) => sumAll(d) }
+        };
+
+        function startGame(numPlayers) {
+            players = Array.from({ length: numPlayers }, (_, i) => ({
+                name: `Player ${i + 1}`,
+                scores: {},
+                yahtzeeBonusCount: 0
+            }));
+            currentPlayerIndex = 0;
+            currentRound = 1;
+            resetTurn();
+            
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            updateUI();
+        }
+
+        function resetTurn() {
+            dice = Array.from({ length: 5 }, (_, i) => ({ id: i, value: 1, held: false }));
+            rollsLeft = 3;
+            hasRolled = false;
+        }
+
+        function rollDice() {
+            if (rollsLeft === 0) return;
+            
+            const diceElements = document.querySelectorAll('.die');
+            diceElements.forEach(el => {
+                if (!el.classList.contains('held')) el.classList.add('rolling');
+            });
+
+            document.getElementById('roll-btn').disabled = true;
+
+            setTimeout(() => {
+                dice.forEach(d => {
+                    if (!d.held) d.value = Math.floor(Math.random() * 6) + 1;
+                });
+                rollsLeft--;
+                hasRolled = true;
+                document.getElementById('roll-btn').disabled = rollsLeft === 0;
+                updateUI();
+            }, 400);
+        }
+
+        function toggleDie(id) {
+            if (rollsLeft === 3 || (rollsLeft === 0 && !hasRolled)) return;
+            dice[id].held = !dice[id].held;
+            updateUI();
+        }
+
+        function scoreCategory(categoryId) {
+            if (!hasRolled) return; 
+            
+            const player = players[currentPlayerIndex];
+            if (player.scores[categoryId] !== undefined) return; 
+
+            const score = CATEGORIES[categoryId].calc(dice);
+            
+            if (hasKind(dice, 5) && player.scores['yahtzee'] === 50 && categoryId !== 'yahtzee') {
+                player.yahtzeeBonusCount++;
+            }
+
+            player.scores[categoryId] = score;
+            nextTurn();
+        }
+
+        function nextTurn() {
+            currentPlayerIndex++;
+            if (currentPlayerIndex >= players.length) {
+                currentPlayerIndex = 0;
+                currentRound++;
+            }
+            
+            if (currentRound > 13) {
+                endGame();
+            } else {
+                resetTurn();
+                updateUI();
+            }
+        }
+
+        function endGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            
+            players.forEach(p => {
+                p.upperTotal = Object.keys(CATEGORIES).filter(k => CATEGORIES[k].section === 'upper').reduce((sum, k) => sum + (p.scores[k] || 0), 0);
+                p.upperBonus = p.upperTotal >= 63 ? 35 : 0;
+                p.lowerTotal = Object.keys(CATEGORIES).filter(k => CATEGORIES[k].section === 'lower').reduce((sum, k) => sum + (p.scores[k] || 0), 0);
+                p.total = p.upperTotal + p.upperBonus + p.lowerTotal + (p.yahtzeeBonusCount * 100);
+            });
+            
+            players.sort((a, b) => b.total - a.total);
+            
+            document.getElementById('final-standings').innerHTML = players.map((p, i) => `
+                <div class="flex justify-between items-center p-4 rounded-xl ${i === 0 ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-50 border border-slate-100'}">
+                    <span class="font-medium">${i === 0 ? '🏆 ' : ''}${p.name}</span>
+                    <span class="${i === 0 ? 'text-2xl font-light' : 'text-xl font-light'}">${p.total}</span>
+                </div>
+            `).join('');
+        }
+
+        function resetGame() {
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+        }
+
+        const counts = (d) => { const c = {}; d.forEach(die => c[die.value] = (c[die.value] || 0) + 1); return c; };
+        const sumMatch = (d, val) => d.filter(die => die.value === val).reduce((s, die) => s + die.value, 0);
+        const sumAll = (d) => d.reduce((s, die) => s + die.value, 0);
+        const hasKind = (d, n) => Object.values(counts(d)).some(c => c >= n);
+        const isFullHouse = (d) => {
+            const c = Object.values(counts(d));
+            return (c.includes(3) && c.includes(2)) || c.includes(5);
+        };
+        const isStraight = (d, length) => {
+            const vals = [...new Set(d.map(die => die.value))].sort();
+            let maxSeq = 1, currentSeq = 1;
+            for (let i = 1; i < vals.length; i++) {
+                if (vals[i] === vals[i-1] + 1) currentSeq++;
+                else { maxSeq = Math.max(maxSeq, currentSeq); currentSeq = 1; }
+            }
+            return Math.max(maxSeq, currentSeq) >= length;
+        };
+
+        function generateDieFace(value) {
+            const dots = {
+                1: ['col-start-2 row-start-2'],
+                2: ['col-start-1 row-start-1', 'col-start-3 row-start-3'],
+                3: ['col-start-1 row-start-1', 'col-start-2 row-start-2', 'col-start-3 row-start-3'],
+                4: ['col-start-1 row-start-1', 'col-start-3 row-start-1', 'col-start-1 row-start-3', 'col-start-3 row-start-3'],
+                5: ['col-start-1 row-start-1', 'col-start-3 row-start-1', 'col-start-2 row-start-2', 'col-start-1 row-start-3', 'col-start-3 row-start-3'],
+                6: ['col-start-1 row-start-1', 'col-start-3 row-start-1', 'col-start-1 row-start-2', 'col-start-3 row-start-2', 'col-start-1 row-start-3', 'col-start-3 row-start-3']
+            };
+            return `<div class="grid grid-cols-3 grid-rows-3 gap-1 w-full h-full p-2 place-items-center">
+                ${dots[value].map(pos => `<div class="die-dot ${pos}"></div>`).join('')}
+            </div>`;
+        }
+
+        function updateUI() {
+            const player = players[currentPlayerIndex];
+            
+            document.getElementById('player-turn').textContent = player.name;
+            document.getElementById('round-info').textContent = `Round ${currentRound} / 13`;
+            
+            const currentTotal = Object.values(player.scores).reduce((a,b)=>a+b,0) + (player.yahtzeeBonusCount * 100);
+            document.getElementById('current-score').textContent = currentTotal;
+
+            document.getElementById('dice-container').innerHTML = dice.map((d, i) => `
+                <div onclick="toggleDie(${i})" class="die w-14 h-14 bg-white border border-slate-200 rounded-xl shadow-sm flex items-center justify-center cursor-pointer ${d.held ? 'held' : ''}">
+                    ${hasRolled ? generateDieFace(d.value) : '<span class="text-slate-400 font-medium">?</span>'}
+                </div>
+            `).join('');
+
+            document.getElementById('roll-text').textContent = hasRolled && rollsLeft > 0 ? 'Roll Again' : (rollsLeft === 0 ? 'Out of Rolls' : 'Roll Dice');
+            document.getElementById('rolls-left').textContent = `${rollsLeft} Left`;
+            document.getElementById('roll-btn').disabled = rollsLeft === 0;
+
+            const renderScoreItem = (cat) => {
+                const isScored = player.scores[cat.id] !== undefined;
+                const score = isScored ? player.scores[cat.id] : (hasRolled ? cat.calc(dice) : '');
+                
+                return `
+                    <div onclick="scoreCategory('${cat.id}')" 
+                         class="p-3 rounded-xl border flex justify-between items-center transition 
+                         ${isScored ? 'bg-slate-100 border-slate-200 text-slate-800' : 
+                           (hasRolled ? 'bg-white border-slate-300 cursor-pointer hover:border-slate-400 active:scale-95 text-slate-600 hover:text-slate-900' : 'bg-white border-slate-200 text-slate-400')}">
+                        <span class="text-sm font-medium">${cat.name}</span>
+                        <span class="${isScored ? 'font-bold' : (hasRolled ? 'font-semibold text-blue-600' : '')}">${score}</span>
+                    </div>
+                `;
+            };
+
+            document.getElementById('upper-scores').innerHTML = Object.values(CATEGORIES).filter(c => c.section === 'upper').map(renderScoreItem).join('');
+            document.getElementById('lower-scores').innerHTML = Object.values(CATEGORIES).filter(c => c.section === 'lower').map(renderScoreItem).join('');
+
+            const upperSum = Object.values(CATEGORIES).filter(c => c.section === 'upper').reduce((sum, c) => sum + (player.scores[c.id] || 0), 0);
+            document.getElementById('upper-bonus').textContent = `${upperSum}/63`;
+            document.getElementById('upper-bonus').className = upperSum >= 63 ? 'font-bold text-green-600' : 'font-medium text-slate-500';
+        }
+    </script>
+</body>
+</html>
