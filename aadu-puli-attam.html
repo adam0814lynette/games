@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#173b35">
+    <title>Aadu Puli Attam — Goats and Tigers</title>
+    <style>
+        :root {
+            --ink: #18322d;
+            --muted: #60736c;
+            --paper: #f7f2e7;
+            --card: #fffdf7;
+            --line: #a77b45;
+            --line-soft: #d8b77d;
+            --green: #173b35;
+            --green-2: #2c6558;
+            --gold: #d99a35;
+            --goat: #f3eee0;
+            --danger: #a94336;
+            --shadow: 0 14px 40px rgba(24, 50, 45, .12);
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; min-height: 100%; }
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--paper); color: var(--ink); overscroll-behavior: none;
+        }
+        button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .app { width: min(100%, 620px); min-height: 100dvh; margin: auto; padding: max(18px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom)); }
+        .screen { display: none; min-height: calc(100dvh - 38px); }
+        .screen.active { display: flex; flex-direction: column; }
+        .welcome { justify-content: center; text-align: center; }
+        .eyebrow { color: var(--green-2); font-size: .74rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+        h1, h2, h3, p { margin: 0; }
+        h1 { font-family: Georgia, serif; font-size: clamp(2.3rem, 10vw, 4rem); line-height: .98; letter-spacing: -.04em; }
+        h2 { font-family: Georgia, serif; font-size: 1.65rem; }
+        .welcome-mark { display: flex; justify-content: center; gap: 14px; margin: 24px 0 20px; font-size: 3rem; }
+        .welcome-mark span { display: grid; place-items: center; width: 76px; height: 76px; border-radius: 24px; background: #ead6aa; box-shadow: var(--shadow); }
+        .subtitle { margin-top: 12px; color: var(--muted); font-size: 1rem; }
+        .description { max-width: 390px; margin: 18px auto 30px; color: var(--muted); line-height: 1.6; }
+        .actions { display: grid; gap: 12px; width: min(100%, 360px); margin: auto; }
+        .primary, .secondary, .small-button { min-height: 46px; border-radius: 12px; border: 1px solid transparent; font-weight: 800; transition: transform .15s, filter .15s; }
+        .primary:active, .secondary:active, .small-button:active { transform: scale(.97); }
+        .primary { background: var(--green); color: white; box-shadow: 0 8px 18px rgba(23, 59, 53, .2); }
+        .secondary, .small-button { background: var(--card); border-color: var(--line-soft); color: var(--green); }
+        .small-button { min-height: 40px; padding: 0 15px; font-size: .85rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .topbar h2 { font-size: 1.35rem; }
+        .help-copy { color: var(--muted); line-height: 1.55; }
+        .help-card { background: var(--card); border: 1px solid var(--line-soft); border-radius: 16px; padding: 18px; margin: 10px 0; box-shadow: 0 5px 18px rgba(24, 50, 45, .05); }
+        .help-card h3 { margin-bottom: 8px; font-size: 1rem; color: var(--green); }
+        .help-card p { color: var(--muted); line-height: 1.55; }
+        .help-card ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); line-height: 1.55; }
+        .game-header { background: var(--green); color: white; border-radius: 18px; padding: 15px; box-shadow: var(--shadow); }
+        .game-header .topbar { margin-bottom: 13px; }
+        .game-header .small-button { background: transparent; color: white; border-color: rgba(255,255,255,.35); }
+        .turn-line { display: flex; justify-content: space-between; gap: 12px; align-items: end; }
+        .turn-label { font-size: 1.1rem; font-weight: 850; }
+        .phase { color: #cbe2d0; font-size: .79rem; margin-top: 3px; }
+        .stats { text-align: right; font-size: .8rem; color: #d9ebdd; line-height: 1.55; }
+        .stats strong { color: white; }
+        .status { min-height: 25px; padding: 8px 4px 4px; color: var(--green-2); font-size: .88rem; font-weight: 750; text-align: center; }
+        .board-wrap { width: min(100%, 560px); margin: 0 auto; padding: 5px 0; }
+        svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: manipulation; }
+        .board-surface { fill: #ead6aa; stroke: #c69a5c; stroke-width: 1.5; }
+        .board-line { stroke: var(--line); stroke-width: 1.4; stroke-linecap: round; }
+        .node-hit { fill: transparent; stroke: transparent; stroke-width: 7; cursor: pointer; }
+        .node-ring { fill: #fff7df; stroke: var(--line); stroke-width: 1.6; pointer-events: none; }
+        .node-ring.legal { fill: #d7f0d8; stroke: #2d805d; stroke-width: 3; }
+        .node-ring.selected { fill: #ffe29a; stroke: #b66d16; stroke-width: 3; }
+        .node-label { fill: var(--line); font-size: 2.8px; font-weight: 800; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        .piece { pointer-events: none; }
+        .tiger-piece { fill: var(--gold); stroke: #824e17; stroke-width: 1.4; }
+        .goat-piece { fill: var(--goat); stroke: #725e43; stroke-width: 1.4; }
+        .piece-detail { fill: none; stroke: #594a39; stroke-width: 1; stroke-linecap: round; pointer-events: none; }
+        .tiger-detail { stroke: #4f2d0a; stroke-width: 1; stroke-linecap: round; pointer-events: none; }
+        .legend { display: flex; justify-content: center; gap: 18px; color: var(--muted); font-size: .75rem; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .legend i { display: inline-block; width: 13px; height: 13px; border-radius: 50%; border: 1px solid #725e43; }
+        .legend .goat-dot { background: var(--goat); } .legend .tiger-dot { background: var(--gold); }
+        .game-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-top: 13px; }
+        .message { margin: 12px 0; border-radius: 12px; background: #f0e5c9; color: var(--green); padding: 11px 13px; text-align: center; font-size: .86rem; font-weight: 700; }
+        .overlay { position: fixed; inset: 0; display: none; place-items: center; padding: 20px; background: rgba(15, 33, 29, .6); z-index: 5; }
+        .overlay.open { display: grid; }
+        .result-card { width: min(100%, 390px); padding: 28px 20px 20px; border-radius: 20px; background: var(--card); text-align: center; box-shadow: var(--shadow); }
+        .result-card .emoji { font-size: 3rem; margin-bottom: 10px; }
+        .result-card p { color: var(--muted); line-height: 1.5; margin: 10px 0 22px; }
+        .result-card .actions { width: 100%; }
+        @media (max-height: 700px) and (max-width: 500px) {
+            .app { padding-top: max(10px, env(safe-area-inset-top)); }
+            .board-wrap { padding: 0; }
+            .status { min-height: 22px; padding-top: 4px; }
+            .game-controls { padding-top: 7px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <section id="welcome-screen" class="screen welcome active" aria-labelledby="welcome-title">
+        <div class="eyebrow">A traditional South Indian strategy game</div>
+        <div class="welcome-mark" aria-hidden="true"><span>🐅</span><span>🐐</span></div>
+        <h1 id="welcome-title">Aadu Puli<br>Attam</h1>
+        <p class="subtitle">Goats and Tigers</p>
+        <p class="description">A game of hunting, blocking, and survival. Place your goats wisely and trap all three tigers.</p>
+        <div class="actions">
+            <button class="primary" type="button" onclick="startGame('ai')">Play Against Computer</button>
+            <button class="secondary" type="button" onclick="startGame('local')">Pass and Play</button>
+            <button class="secondary" type="button" onclick="showScreen('help')">How to Play</button>
+        </div>
+    </section>
+
+    <section id="help-screen" class="screen" aria-labelledby="help-title">
+        <div class="topbar"><h2 id="help-title">How to Play</h2><button class="small-button" type="button" onclick="goBackFromHelp()">Back</button></div>
+        <div class="help-card"><h3>Objective</h3><p><strong>Three tigers</strong> hunt and capture goats. <strong>Fifteen goats</strong> work together to surround and immobilize the tigers. You control the goats; the computer controls the tigers.</p></div>
+        <div class="help-card"><h3>Game setup</h3><ul><li>The tigers start on their traditional positions.</li><li>Goats begin off the board.</li><li>On each goat turn, place one goat on an empty intersection.</li><li>Once all 15 goats are placed, goats can move between connected intersections.</li></ul></div>
+        <div class="help-card"><h3>Goats</h3><ul><li>Tap an empty highlighted intersection to place a goat.</li><li>During movement, tap a goat, then tap a highlighted neighbor.</li><li>Goats move along lines only and never jump or capture.</li></ul></div>
+        <div class="help-card"><h3>Tigers</h3><ul><li>The computer moves the tigers.</li><li>A tiger may move to a neighboring empty intersection.</li><li>It may capture by jumping over one goat to an empty connected point beyond it.</li><li>One capture is made per tiger turn.</li></ul></div>
+        <div class="help-card"><h3>Winning</h3><p>Tigers win after capturing 5 goats. Goats win when every tiger has no legal move or capture. Aadu Puli Attam, meaning “Goat and Tiger Game,” is a traditional strategy game from South India.</p></div>
+    </section>
+
+    <section id="game-screen" class="screen" aria-labelledby="game-title">
+        <header class="game-header">
+            <div class="topbar"><h2 id="game-title">Aadu Puli Attam</h2><button class="small-button" type="button" onclick="showScreen('help')">Help</button></div>
+            <div class="turn-line"><div><div id="turn-label" class="turn-label">Your Turn</div><div id="phase-label" class="phase">Place a goat</div></div><div class="stats"><div>Goats remaining: <strong id="remaining-count">15</strong></div><div>Captured: <strong id="captured-count">0</strong> / 5</div></div></div>
+        </header>
+        <div id="status-message" class="status" role="status" aria-live="polite">Place a goat on an empty intersection.</div>
+        <div class="board-wrap">
+            <svg id="board" viewBox="0 0 100 100" role="img" aria-label="Aadu Puli Attam game board"></svg>
+        </div>
+        <div class="legend" aria-label="Piece legend"><span><i class="tiger-dot"></i> Tiger</span><span><i class="goat-dot"></i> Goat</span></div>
+        <div id="game-message" class="message" hidden></div>
+        <div class="game-controls"><button class="secondary" type="button" onclick="restartGame()">Restart</button><button class="secondary" type="button" onclick="returnToMenu()">Main Menu</button></div>
+    </section>
+</div>
+
+<div id="result-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <div class="result-card"><div id="result-emoji" class="emoji" aria-hidden="true">🐐</div><h2 id="result-title">Goats Win!</h2><p id="result-copy">The tigers have been trapped.</p><div class="actions"><button class="primary" type="button" onclick="restartGame()">Play Again</button><button class="secondary" type="button" onclick="closeResultToMenu()">Main Menu</button></div></div>
+</div>
+
+<script>
+    /* Board definition: each line lists connected points in order. */
+    const POINTS = [
+        [50,5], [30,18], [50,18], [70,18], [15,34], [32.5,34], [50,34], [67.5,34], [85,34],
+        [15,50], [32.5,50], [50,50], [67.5,50], [85,50], [15,66], [32.5,66], [50,66], [67.5,66], [85,66],
+        [30,82], [50,82], [70,82], [50,95]
+    ];
+    const BOARD_LINES = [
+        [0,1,2,3], [4,5,6,7,8], [9,10,11,12,13], [14,15,16,17,18], [19,20,21],
+        [0,2,6,11,16,20,22], [3,8,13,18,21], [1,5,10,15,19], [4,9,14,19], [7,12,17,21],
+        [0,1,4,9,14], [3,2,6,11,16,17,21], [22,20,16,11,6,5,1]
+    ];
+    const EDGES = buildEdges(BOARD_LINES);
+    const JUMPS = buildJumps(BOARD_LINES);
+    const state = { goats: Array(15).fill(null), goatsPlaced: 0, tigers: [0, 3, 22], captured: 0, turn: 'goat', phase: 'placement', selectedGoat: null, selectedTiger: null, mode: 'ai', active: false, message: '' };
+    let helpReturnScreen = 'welcome';
+    let aiTimer = null;
+
+    function buildEdges(lines) {
+        const edges = new Set();
+        lines.forEach(line => line.forEach((point, i) => { if (i) { const a = Math.min(point, line[i - 1]); const b = Math.max(point, line[i - 1]); edges.add(`${a}-${b}`); } }));
+        return [...edges].map(edge => edge.split('-').map(Number));
+    }
+    function buildJumps(lines) {
+        const jumps = [];
+        lines.forEach(line => line.forEach((point, i) => { if (i > 1) jumps.push([line[i - 2], line[i - 1], point], [point, line[i - 1], line[i - 2]]); }));
+        return uniqueJumps(jumps);
+    }
+    function uniqueJumps(jumps) { const seen = new Set(); return jumps.filter(j => { const key = j.join('-'); if (seen.has(key)) return false; seen.add(key); return true; }); }
+    function neighbors(point) { return EDGES.filter(([a,b]) => a === point || b === point).map(([a,b]) => a === point ? b : a); }
+    function isOccupied(point) { return state.tigers.includes(point) || state.goats.includes(point); }
+    function goatAt(point) { return state.goats.findIndex(g => g === point); }
+    function tigerAt(point) { return state.tigers.indexOf(point); }
+    function empty(point) { return !isOccupied(point); }
+    function legalGoatDestinations(goatPoint) { return state.phase === 'movement' ? neighbors(goatPoint).filter(empty) : []; }
+    function legalTigerMoves(tigerPoint) {
+        const moves = neighbors(tigerPoint).filter(empty).map(to => ({ from: tigerPoint, to, capture: null }));
+        JUMPS.forEach(([from, over, to]) => { if (from === tigerPoint && goatAt(over) !== -1 && empty(to)) moves.push({ from, over, to, capture: goatAt(over) }); });
+        return moves;
+    }
+    function allTigerMoves() { return state.tigers.flatMap((point, index) => legalTigerMoves(point).map(move => ({ ...move, tigerIndex: index }))); }
+
+    function resetState() {
+        state.goats = Array(15).fill(null); state.goatsPlaced = 0; state.tigers = [0, 3, 22]; state.captured = 0; state.turn = 'goat'; state.phase = 'placement'; state.selectedGoat = null; state.selectedTiger = null; state.active = true; state.message = 'Place a goat on an empty intersection.';
+        if (aiTimer) clearTimeout(aiTimer); render();
+    }
+    function startGame(mode = 'ai') { closeOverlay(); state.mode = mode; resetState(); showScreen('game'); }
+    function restartGame() { closeOverlay(); resetState(); showScreen('game'); }
+    function returnToMenu() { if (aiTimer) clearTimeout(aiTimer); state.active = false; closeOverlay(); showScreen('welcome'); }
+    function showScreen(name) {
+        if (name === 'help') helpReturnScreen = document.querySelector('.screen.active')?.id === 'game-screen' ? 'game' : 'welcome';
+        document.querySelectorAll('.screen').forEach(screen => screen.classList.toggle('active', screen.id === `${name}-screen`));
+    }
+    function goBackFromHelp() { showScreen(helpReturnScreen); }
+    function closeOverlay() { document.getElementById('result-overlay').classList.remove('open'); }
+    function closeResultToMenu() { closeOverlay(); state.active = false; showScreen('welcome'); }
+    function setMessage(message) { state.message = message; document.getElementById('status-message').textContent = message; }
+
+    function handlePoint(point) {
+        if (!state.active) return;
+        if (state.turn === 'tiger' && state.mode === 'local') { handleLocalTigerPoint(point); return; }
+        if (state.turn !== 'goat') return;
+        if (state.phase === 'placement') {
+            if (!empty(point)) { setMessage('Choose an empty intersection.'); return; }
+            const slot = state.goats.findIndex(goat => goat === null);
+            state.goats[slot] = point; state.goatsPlaced++; state.selectedGoat = null; setMessage(state.mode === 'ai' ? 'Goat placed. Tigers are thinking…' : 'Goat placed. Pass the device to the tiger player.'); render(); endGoatTurn(); return;
+        }
+        if (state.selectedGoat !== null) {
+            const destinations = legalGoatDestinations(state.goats[state.selectedGoat]);
+            if (destinations.includes(point)) { state.goats[state.selectedGoat] = point; state.selectedGoat = null; setMessage('Goat moved. Tigers are thinking…'); render(); endGoatTurn(); return; }
+            if (goatAt(point) !== -1) { state.selectedGoat = goatAt(point); setMessage('Goat selected. Choose a highlighted destination.'); render(); return; }
+            setMessage('That move is not allowed.'); return;
+        }
+        const selected = goatAt(point);
+        if (selected !== -1) { state.selectedGoat = selected; setMessage('Goat selected. Choose a highlighted destination.'); render(); }
+        else setMessage('Select one of your goats to move.');
+    }
+    function endGoatTurn() {
+        if (!allTigerMoves().length) { finish('goats'); return; }
+        if (state.goatsPlaced === 15) state.phase = 'movement';
+        state.turn = 'tiger'; render();
+        if (state.mode === 'ai') aiTimer = setTimeout(playTigerTurn, 500);
+        else setMessage('Tiger player: select a tiger.');
+    }
+    function handleLocalTigerPoint(point) {
+        if (state.selectedTiger !== null) {
+            const move = legalTigerMoves(state.tigers[state.selectedTiger]).find(candidate => candidate.to === point);
+            if (move) { executeTigerMove(move, state.selectedTiger); return; }
+            if (tigerAt(point) !== -1) { state.selectedTiger = tigerAt(point); setMessage('Tiger selected. Choose a highlighted destination.'); render(); return; }
+            setMessage('That move is not allowed.'); return;
+        }
+        const tiger = tigerAt(point);
+        if (tiger !== -1) { state.selectedTiger = tiger; setMessage('Tiger selected. Choose a highlighted destination.'); render(); }
+        else setMessage('Select one of the tigers.');
+    }
+    function playTigerTurn() {
+        if (!state.active) return;
+        const moves = allTigerMoves();
+        if (!moves.length) { finish('goats'); return; }
+        const move = chooseAiMove(moves);
+        executeTigerMove(move, move.tigerIndex);
+    }
+    function executeTigerMove(move, tigerIndex) {
+        state.tigers[tigerIndex] = move.to;
+        if (move.capture !== null) { state.goats[move.capture] = null; state.captured++; }
+        state.selectedGoat = null; state.selectedTiger = null;
+        if (state.captured >= 5) { render(); finish('tigers'); return; }
+        state.turn = 'goat'; setMessage(move.capture !== null ? 'Tiger captured a goat! ' + (state.mode === 'ai' ? 'Your turn.' : 'Pass the device to the goat player.') : (state.mode === 'ai' ? 'Your turn. ' : 'Goat player: ') + (state.phase === 'placement' ? 'Place a goat.' : 'Select a goat to move.')); render();
+    }
+    function chooseAiMove(moves) {
+        const captures = moves.filter(move => move.capture !== null);
+        if (captures.length) return captures[Math.floor(Math.random() * captures.length)];
+        const scored = moves.map(move => {
+            const future = legalTigerMoves(move.to).filter(next => next.capture !== null).length;
+            const escape = neighbors(move.to).filter(empty).length;
+            const edgePenalty = [0,3,22].includes(move.to) ? -1 : 0;
+            return { move, score: future * 8 + escape * 1.5 + edgePenalty + Math.random() * 1.5 };
+        }).sort((a,b) => b.score - a.score);
+        return scored[0].move;
+    }
+    function finish(winner) {
+        state.active = false; state.turn = null; render();
+        document.getElementById('result-emoji').textContent = winner === 'goats' ? '🐐' : '🐅';
+        document.getElementById('result-title').textContent = winner === 'goats' ? 'Goats Win!' : 'Tigers Win!';
+        document.getElementById('result-copy').textContent = winner === 'goats' ? 'The tigers have been trapped.' : 'Five goats have been captured.';
+        document.getElementById('result-overlay').classList.add('open');
+    }
+
+    function render() {
+        const board = document.getElementById('board');
+        board.innerHTML = `<rect class="board-surface" x="4" y="1.5" width="92" height="97" rx="4"/>${BOARD_LINES.map(line => `<polyline class="board-line" points="${line.map(i => POINTS[i].join(',')).join(' ')}"/>`).join('')}${POINTS.map((point, i) => renderNode(point, i)).join('')}`;
+        document.getElementById('remaining-count').textContent = state.phase === 'placement' ? 15 - state.goatsPlaced : 0;
+        document.getElementById('captured-count').textContent = state.captured;
+        document.getElementById('turn-label').textContent = state.turn === 'tiger' ? (state.mode === 'ai' ? "Tiger's Turn" : "Tiger Player's Turn") : (state.mode === 'ai' ? 'Your Turn' : "Goat Player's Turn");
+        document.getElementById('phase-label').textContent = state.turn === 'tiger' ? 'Move or capture with a tiger' : (state.phase === 'placement' ? 'Place a goat' : 'Move a goat');
+        document.getElementById('status-message').textContent = state.message;
+        document.getElementById('game-message').hidden = true;
+    }
+    function renderNode(point, index) {
+        const selected = state.phase === 'movement' && state.selectedGoat !== null && state.goats[state.selectedGoat] === index;
+        const selectedTiger = state.turn === 'tiger' && state.selectedTiger !== null && state.tigers[state.selectedTiger] === index;
+        const legalGoat = state.turn === 'goat' && (state.phase === 'placement' ? empty(index) : state.selectedGoat !== null && legalGoatDestinations(state.goats[state.selectedGoat]).includes(index));
+        const legalTiger = state.mode === 'local' && state.turn === 'tiger' && state.selectedTiger !== null && legalTigerMoves(state.tigers[state.selectedTiger]).some(move => move.to === index);
+        const legal = legalGoat || legalTiger;
+        let piece = '';
+        const tiger = tigerAt(index); const goat = goatAt(index);
+        if (tiger !== -1) piece = `<g class="piece"><circle class="tiger-piece" cx="${point[0]}" cy="${point[1]}" r="4.5"/><path class="tiger-detail" d="M${point[0]-2.4} ${point[1]-2.2}l1.1 4.4m1.2-4.4l1.1 4.4m1.2-4.4l1.1 4.4"/><circle cx="${point[0]-1.5}" cy="${point[1]-1}" r=".45" fill="#4f2d0a"/><circle cx="${point[0]+1.5}" cy="${point[1]-1}" r=".45" fill="#4f2d0a"/></g>`;
+        else if (goat !== -1) piece = `<g class="piece"><circle class="goat-piece" cx="${point[0]}" cy="${point[1]}" r="4.5"/><path class="piece-detail" d="M${point[0]-2.5} ${point[1]-2.1}q-2.2-2.2-2.8-.2m5.3.2q2.2-2.2 2.8-.2M${point[0]-1.6} ${point[1]+1.3}q1.6 1.2 3.2 0"/><circle cx="${point[0]+2.1}" cy="${point[1]-1}" r=".45" fill="#594a39"/></g>`;
+        return `<g onclick="handlePoint(${index})" aria-label="Intersection ${index + 1}"><circle class="node-hit" cx="${point[0]}" cy="${point[1]}" r="7"/><circle class="node-ring ${selected || selectedTiger ? 'selected' : ''} ${legal ? 'legal' : ''}" cx="${point[0]}" cy="${point[1]}" r="2.8"/>${piece}</g>`;
+    }
+
+    render();
+</script>
+</body>
+</html>
