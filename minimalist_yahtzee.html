@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; }
-        .die-dot { background-color: #0f172a; border-radius: 50%; width: 10px; height: 10px; }
+        .die-dot { background-color: #0f172a; border-radius: 50%; width: 8px; height: 8px; }
         .die { transition: transform 0.2s, background-color 0.2s, border-color 0.2s; }
         .die.held { background-color: #dbeafe; border: 2px solid #2563eb; transform: translateY(4px); }
         .die.rolling { animation: shake 0.3s infinite; }
@@ -63,44 +63,44 @@
         </div>
 
         <div id="game-screen" class="hidden flex-1 flex flex-col h-full overflow-hidden">
-            <header class="p-4 border-b border-slate-200 bg-white z-10 shrink-0">
+            <header class="p-3 border-b border-slate-200 bg-white z-10 shrink-0">
                 <div class="flex justify-between items-start gap-3">
                     <div>
-                        <h2 id="player-turn" class="text-lg font-semibold">Player 1</h2>
-                        <p id="round-info" class="text-xs text-slate-500 uppercase tracking-wide">Round 1 / 13</p>
-                        <p id="turn-status" class="text-xs text-blue-700 font-semibold mt-1 min-h-4"></p>
+                        <h2 id="player-turn" class="text-base font-semibold leading-tight">Player 1</h2>
+                        <p id="round-info" class="text-[11px] text-slate-500 uppercase tracking-wide leading-tight">Round 1 / 13</p>
+                        <p id="turn-status" class="text-[11px] text-blue-700 font-semibold mt-0.5 min-h-3 leading-tight"></p>
                     </div>
                     <div class="text-right">
-                        <p class="text-xs text-slate-500 uppercase tracking-wide">Total Score</p>
-                        <p id="current-score" class="text-2xl font-light">0</p>
+                        <p class="text-[11px] text-slate-500 uppercase tracking-wide leading-tight">Total Score</p>
+                        <p id="current-score" class="text-xl font-light leading-tight">0</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 mt-3">
-                    <button id="undo-btn" onclick="undoScore()" class="py-2 rounded-lg border border-slate-300 bg-white text-sm font-semibold disabled:opacity-40 active:scale-95">Undo Score</button>
-                    <button onclick="confirmNewGame()" class="py-2 rounded-lg border border-slate-300 bg-white text-sm font-semibold active:scale-95">New Game</button>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <button id="undo-btn" onclick="undoScore()" class="py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold disabled:opacity-40 active:scale-95">Undo Score</button>
+                    <button onclick="confirmNewGame()" class="py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold active:scale-95">New Game</button>
                 </div>
             </header>
 
-            <main class="flex-1 overflow-y-auto p-4 pb-8">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Upper</h3>
-                        <div id="upper-scores" class="space-y-2"></div>
-                        <div class="mt-2 p-2 bg-slate-100 rounded-lg flex justify-between text-sm border border-slate-200">
+            <main class="flex-1 overflow-hidden p-2">
+                <div class="grid grid-cols-2 gap-2 h-full content-start">
+                    <div class="min-w-0">
+                        <h3 class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1 leading-tight">Upper</h3>
+                        <div id="upper-scores" class="space-y-1"></div>
+                        <div class="mt-1 p-1.5 bg-slate-100 rounded-lg flex justify-between text-xs border border-slate-200">
                             <span class="text-slate-600">Bonus at 63</span>
                             <span id="upper-bonus" class="font-medium">0/63</span>
                         </div>
                     </div>
-                    <div>
-                        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Lower</h3>
-                        <div id="lower-scores" class="space-y-2"></div>
+                    <div class="min-w-0">
+                        <h3 class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1 leading-tight">Lower</h3>
+                        <div id="lower-scores" class="space-y-1"></div>
                     </div>
                 </div>
             </main>
 
-            <footer class="w-full bg-white border-t border-slate-200 p-4 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] shrink-0 z-20">
-                <div id="dice-container" class="flex justify-between mb-4 px-1"></div>
-                <button id="roll-btn" onclick="rollDice()" class="w-full py-4 rounded-lg bg-slate-950 text-white font-semibold active:scale-95 shadow-md flex items-center justify-center disabled:opacity-50 disabled:active:scale-100">
+            <footer class="w-full bg-white border-t border-slate-200 p-2 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] shrink-0 z-20">
+                <div id="dice-container" class="flex justify-between mb-2 px-1"></div>
+                <button id="roll-btn" onclick="rollDice()" class="w-full py-3 rounded-lg bg-slate-950 text-white font-semibold active:scale-95 shadow-md flex items-center justify-center disabled:opacity-50 disabled:active:scale-100">
                     <span id="roll-text">Roll Dice</span>
                     <span id="rolls-left" class="bg-slate-700 text-xs px-2 py-1 rounded-md ml-2">3 Left</span>
                 </button>
@@ -522,7 +522,7 @@
                 5: ['col-start-1 row-start-1', 'col-start-3 row-start-1', 'col-start-2 row-start-2', 'col-start-1 row-start-3', 'col-start-3 row-start-3'],
                 6: ['col-start-1 row-start-1', 'col-start-3 row-start-1', 'col-start-1 row-start-2', 'col-start-3 row-start-2', 'col-start-1 row-start-3', 'col-start-3 row-start-3']
             };
-            return `<div class="grid grid-cols-3 grid-rows-3 gap-1 w-full h-full p-2 place-items-center">
+            return `<div class="grid grid-cols-3 grid-rows-3 gap-0.5 w-full h-full p-1.5 place-items-center">
                 ${dots[value].map(pos => `<div class="die-dot ${pos}"></div>`).join('')}
             </div>`;
         }
@@ -540,7 +540,7 @@
             document.getElementById('undo-btn').disabled = undoStack.length === 0 || aiThinking;
 
             document.getElementById('dice-container').innerHTML = dice.map((d, i) => `
-                <div onclick="toggleDie(${i})" class="die w-14 h-14 bg-white border border-slate-300 rounded-lg shadow-sm flex items-center justify-center ${aiTurn ? 'cursor-default' : 'cursor-pointer'} ${d.held ? 'held' : ''}">
+                <div onclick="toggleDie(${i})" class="die w-11 h-11 bg-white border border-slate-300 rounded-lg shadow-sm flex items-center justify-center ${aiTurn ? 'cursor-default' : 'cursor-pointer'} ${d.held ? 'held' : ''}">
                     ${hasRolled ? generateDieFace(d.value) : '<span class="text-slate-400 font-semibold">?</span>'}
                 </div>
             `).join('');
@@ -563,9 +563,9 @@
                         : 'bg-white border-slate-200 text-slate-400');
 
                 return `
-                    <div onclick="scoreCategory('${cat.id}')" class="p-3 rounded-lg border flex justify-between items-center transition ${rowClasses}">
-                        <span class="text-sm font-semibold">${cat.name}</span>
-                        <span class="min-w-8 text-center px-2 py-1 rounded-md text-sm font-bold ${scoreClasses}">${score}</span>
+                    <div onclick="scoreCategory('${cat.id}')" class="px-2 py-1.5 min-h-8 rounded-lg border flex justify-between items-center gap-1 transition ${rowClasses}">
+                        <span class="text-xs font-semibold leading-tight truncate">${cat.name}</span>
+                        <span class="min-w-7 text-center px-1.5 py-0.5 rounded-md text-xs font-bold ${scoreClasses}">${score}</span>
                     </div>
                 `;
             };
