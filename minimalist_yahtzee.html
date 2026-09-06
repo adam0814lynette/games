@@ -18,40 +18,54 @@
             75% { transform: translate(2px, 2px) rotate(-1deg); }
             100% { transform: translate(1px, -1px) rotate(0deg); }
         }
+        @media (prefers-color-scheme: dark) {
+            body,
+            body.bg-slate-100 { background-color: #050509 !important; color: #f8fafc; }
+            #app,
+            #setup-screen,
+            #game-screen,
+            #game-over-screen,
+            header,
+            footer { background-color: #050509; color: #f8fafc; }
+            main { background-color: #050509; }
+            .bg-white { background-color: #11111a !important; color: #f8fafc; }
+            .bg-slate-100 { background-color: #161625 !important; }
+            .bg-slate-200 { background-color: #2a2a3a !important; }
+            .bg-slate-700,
+            .bg-slate-950 { background-color: #facc15 !important; color: #050509 !important; }
+            .bg-blue-50 { background-color: #14102b !important; }
+            .bg-blue-700 { background-color: #39ff14 !important; color: #050509 !important; }
+            .bg-rose-100 { background-color: #2d0a22 !important; }
+            .text-slate-400 { color: #a8b3cf !important; }
+            .text-slate-500,
+            .text-slate-600 { color: #c4ff3d !important; }
+            .text-slate-900,
+            .text-slate-950 { color: #f8fafc !important; }
+            .text-blue-700,
+            .text-blue-800 { color: #00e5ff !important; }
+            .text-rose-800 { color: #ff4fd8 !important; }
+            .text-green-700 { color: #39ff14 !important; }
+            .border-slate-200,
+            .border-slate-300,
+            .border-slate-500 { border-color: #3b3b56 !important; }
+            .border-blue-300,
+            .border-blue-500 { border-color: #00e5ff !important; }
+            input,
+            select,
+            button { color: #f8fafc; }
+            input,
+            select { background-color: #11111a !important; border-color: #3b3b56 !important; }
+            button.bg-white { border-color: #ff4fd8 !important; }
+            .die { background-color: #f8fafc !important; border-color: #00e5ff !important; box-shadow: 0 0 12px rgba(0, 229, 255, 0.22); }
+            .die-dot { background-color: #050509; }
+            .die.held { background-color: #ff4fd8 !important; border-color: #facc15 !important; box-shadow: 0 0 16px rgba(255, 79, 216, 0.45); }
+            .die.held .die-dot { background-color: #050509; }
+            #roll-btn,
+            #game-over-screen button,
+            #setup-screen button[onclick="startGame()"] { background-color: #facc15 !important; color: #050509 !important; }
+            #rolls-left { background-color: #050509 !important; color: #facc15 !important; border: 1px solid #facc15; }
+        }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
-
-        body.dark-mode { background-color: #020617; color: #f8fafc; }
-        body.dark-mode #app { background-color: #0f172a; }
-        body.dark-mode .bg-white { background-color: #0f172a !important; }
-        body.dark-mode .bg-slate-100 { background-color: #1e293b !important; }
-        body.dark-mode .bg-slate-200 { background-color: #334155 !important; }
-        body.dark-mode .border-slate-200,
-        body.dark-mode .border-slate-300 { border-color: #475569 !important; }
-        body.dark-mode .border-slate-500 { border-color: #94a3b8 !important; }
-        body.dark-mode .text-slate-900,
-        body.dark-mode .text-slate-950 { color: #f8fafc !important; }
-        body.dark-mode .text-slate-600,
-        body.dark-mode .text-slate-500,
-        body.dark-mode .text-slate-400 { color: #cbd5e1 !important; }
-        body.dark-mode .text-blue-700 { color: #93c5fd !important; }
-        body.dark-mode .bg-blue-50 { background-color: #172554 !important; }
-        body.dark-mode .bg-blue-700 { background-color: #1d4ed8 !important; }
-        body.dark-mode .bg-blue-300 { border-color: #60a5fa !important; }
-        body.dark-mode .bg-rose-100 { background-color: #4c0519 !important; }
-        body.dark-mode .text-rose-800 { color: #fda4af !important; }
-        body.dark-mode .text-green-700 { color: #86efac !important; }
-        body.dark-mode .die-dot { background-color: #e2e8f0; }
-        body.dark-mode .die.held { background-color: #1e3a8a; border-color: #60a5fa; }
-        body.dark-mode input,
-        body.dark-mode select { background-color: #1e293b; color: #f8fafc; }
-        body.dark-mode #game-over-screen { background-color: #0f172a; }
-
-        /* Divide the available game area into proportional score rows. */
-        .score-column { display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100%; }
-        .score-list { display: grid; gap: 0.5rem; min-height: 0; }
-        .upper-score-list { flex: 6 1 0%; grid-template-rows: repeat(6, minmax(0, 1fr)); }
-        .lower-score-list { flex: 7 1 0%; grid-template-rows: repeat(7, minmax(0, 1fr)); }
-        .bonus-panel { flex: 1 1 0%; min-height: 2rem; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 h-[100dvh] w-full flex justify-center overflow-hidden">
@@ -60,10 +74,7 @@
 
         <div id="setup-screen" class="flex-1 flex flex-col p-5 overflow-y-auto">
             <div class="py-6">
-                <div class="flex justify-between items-start gap-3">
-                    <h1 class="text-4xl font-light tracking-widest uppercase">Yahtzee</h1>
-                    <button onclick="toggleTheme()" class="theme-toggle px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs font-semibold active:scale-95" aria-label="Toggle dark mode">Dark</button>
-                </div>
+                <h1 class="text-4xl font-light tracking-widest uppercase">Yahtzee</h1>
                 <p class="mt-2 text-sm text-slate-500">Set local pass-and-play seats or add AI players.</p>
             </div>
 
@@ -79,8 +90,8 @@
                 <div>
                     <label for="player-count" class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Players</label>
                     <select id="player-count" onchange="setPlayerCount(this.value)" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-base font-medium">
-                        <option value="1">1 player</option>
-                        <option value="2" selected>2 players</option>
+                        <option value="1" selected>1 player</option>
+                        <option value="2">2 players</option>
                         <option value="3">3 players</option>
                         <option value="4">4 players</option>
                     </select>
@@ -114,23 +125,22 @@
                 <div class="grid grid-cols-2 gap-2 mt-2">
                     <button id="undo-btn" onclick="undoScore()" class="py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold disabled:opacity-40 active:scale-95">Undo Score</button>
                     <button onclick="confirmNewGame()" class="py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold active:scale-95">New Game</button>
-                    <button onclick="toggleTheme()" class="theme-toggle col-span-2 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold active:scale-95" aria-label="Toggle dark mode">Dark Mode</button>
                 </div>
             </header>
 
             <main class="flex-1 overflow-hidden p-2">
                 <div class="grid grid-cols-2 gap-2 h-full content-start">
-                    <div class="score-column">
+                    <div class="min-w-0">
                         <h3 class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1 leading-tight">Upper</h3>
-                        <div id="upper-scores" class="score-list upper-score-list"></div>
-                        <div class="bonus-panel mt-1 p-1.5 bg-slate-100 rounded-lg flex justify-between items-center text-xs border border-slate-200">
+                        <div id="upper-scores" class="space-y-1"></div>
+                        <div class="mt-1 p-1.5 bg-slate-100 rounded-lg flex justify-between text-xs border border-slate-200">
                             <span class="text-slate-600">Bonus at 63</span>
                             <span id="upper-bonus" class="font-medium">0/63</span>
                         </div>
                     </div>
-                    <div class="score-column">
+                    <div class="min-w-0">
                         <h3 class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1 leading-tight">Lower</h3>
-                        <div id="lower-scores" class="score-list lower-score-list"></div>
+                        <div id="lower-scores" class="space-y-1"></div>
                     </div>
                 </div>
             </main>
@@ -159,8 +169,7 @@
         const MAX_UNDO = 10;
 
         let setupPlayers = [
-            { name: 'Player 1', type: 'human' },
-            { name: 'AI 1', type: 'ai' }
+            { name: 'Player 1', type: 'human' }
         ];
         let players = [];
         let currentPlayerIndex = 0;
@@ -170,7 +179,6 @@
         let hasRolled = false;
         let undoStack = [];
         let aiThinking = false;
-        let aiStatus = '';
         let gameActive = false;
 
         const CATEGORIES = {
@@ -197,6 +205,9 @@
             if (mode === 'local') {
                 setupPlayers = setupPlayers.map((p, i) => ({ name: p.name && !p.name.startsWith('AI') ? p.name : `Player ${i + 1}`, type: 'human' }));
             } else {
+                if (setupPlayers.length < 2) {
+                    setupPlayers.push({ name: 'AI 1', type: 'ai' });
+                }
                 setupPlayers = setupPlayers.map((p, i) => i === 0
                     ? { name: p.name && !p.name.startsWith('AI') ? p.name : 'Player 1', type: 'human' }
                     : { name: p.name && p.name.startsWith('AI') ? p.name : `AI ${i}`, type: 'ai' });
@@ -252,7 +263,6 @@
             currentRound = 1;
             undoStack = [];
             aiThinking = false;
-            aiStatus = '';
             gameActive = true;
             resetTurn();
             showScreen('game');
@@ -345,47 +355,32 @@
         async function scheduleAiTurn() {
             if (!isAiTurn() || aiThinking) return;
             aiThinking = true;
-            aiStatus = 'AI is thinking…';
             updateUI();
-            await sleep(900);
+            await sleep(450);
 
             while (isAiTurn() && gameActive) {
                 await playAiTurn();
-                await sleep(800);
+                await sleep(450);
             }
 
             aiThinking = false;
-            aiStatus = '';
             updateUI();
         }
 
         async function playAiTurn() {
             while (rollsLeft > 0) {
                 if (!isAiTurn()) return;
-                aiStatus = `AI is rolling… (${rollsLeft} left)`;
-                updateUI();
-                animateDice();
-                await sleep(350);
                 rollOpenDice();
                 rollsLeft--;
                 hasRolled = true;
-                aiStatus = `AI rolled — reviewing dice (${rollsLeft} left)`;
+                if (rollsLeft > 0) applyAiHolds();
                 saveGame();
                 updateUI();
-                await sleep(850);
-                if (rollsLeft > 0) {
-                    applyAiHolds();
-                    aiStatus = 'AI is choosing which dice to hold…';
-                    saveGame();
-                    updateUI();
-                    await sleep(850);
-                }
+                await sleep(450);
             }
             if (!hasRolled) return;
             const categoryId = chooseAiCategory(players[currentPlayerIndex]);
-            aiStatus = `AI is scoring ${CATEGORIES[categoryId].name}…`;
-            updateUI();
-            await sleep(900);
+            await sleep(250);
             commitScore(categoryId, false);
         }
 
@@ -589,7 +584,7 @@
 
             document.getElementById('player-turn').textContent = `${player.name}${player.type === 'ai' ? ' (AI)' : ''}`;
             document.getElementById('round-info').textContent = `Round ${currentRound} / 13`;
-            document.getElementById('turn-status').textContent = aiTurn ? (aiStatus || 'AI turn in progress') : '';
+            document.getElementById('turn-status').textContent = aiTurn ? 'AI turn in progress' : '';
             document.getElementById('current-score').textContent = totals.total;
             document.getElementById('undo-btn').disabled = undoStack.length === 0 || aiThinking;
 
@@ -617,9 +612,9 @@
                         : 'bg-white border-slate-200 text-slate-400');
 
                 return `
-                    <div onclick="scoreCategory('${cat.id}')" class="h-full min-h-0 px-3 py-2 rounded-lg border flex justify-between items-center gap-2 transition ${rowClasses}">
+                    <div onclick="scoreCategory('${cat.id}')" class="px-2 py-1.5 min-h-8 rounded-lg border flex justify-between items-center gap-1 transition ${rowClasses}">
                         <span class="text-xs font-semibold leading-tight truncate">${cat.name}</span>
-                        <span class="min-w-9 text-center px-2 py-1 rounded-md text-sm font-bold ${scoreClasses}">${score}</span>
+                        <span class="min-w-7 text-center px-1.5 py-0.5 rounded-md text-xs font-bold ${scoreClasses}">${score}</span>
                     </div>
                 `;
             };
@@ -651,21 +646,6 @@
                 .replace(/'/g, '&#039;');
         }
 
-        function applyTheme() {
-            const dark = localStorage.getItem('minimalist-yahtzee-theme') === 'dark';
-            document.body.classList.toggle('dark-mode', dark);
-            document.querySelectorAll('.theme-toggle').forEach(button => {
-                button.textContent = dark ? 'Light Mode' : 'Dark Mode';
-            });
-        }
-
-        function toggleTheme() {
-            const isDark = !document.body.classList.contains('dark-mode');
-            localStorage.setItem('minimalist-yahtzee-theme', isDark ? 'dark' : 'light');
-            applyTheme();
-        }
-
-        applyTheme();
         renderSetup();
     </script>
 </body>
