@@ -18,53 +18,51 @@
             75% { transform: translate(2px, 2px) rotate(-1deg); }
             100% { transform: translate(1px, -1px) rotate(0deg); }
         }
-        @media (prefers-color-scheme: dark) {
-            body,
-            body.bg-slate-100 { background-color: #050509 !important; color: #f8fafc; }
-            #app,
-            #setup-screen,
-            #game-screen,
-            #game-over-screen,
-            header,
-            footer { background-color: #050509; color: #f8fafc; }
-            main { background-color: #050509; }
-            .bg-white { background-color: #11111a !important; color: #f8fafc; }
-            .bg-slate-100 { background-color: #161625 !important; }
-            .bg-slate-200 { background-color: #2a2a3a !important; }
-            .bg-slate-700,
-            .bg-slate-950 { background-color: #facc15 !important; color: #050509 !important; }
-            .bg-blue-50 { background-color: #14102b !important; }
-            .bg-blue-700 { background-color: #39ff14 !important; color: #050509 !important; }
-            .bg-rose-100 { background-color: #2d0a22 !important; }
-            .text-slate-400 { color: #a8b3cf !important; }
-            .text-slate-500,
-            .text-slate-600 { color: #c4ff3d !important; }
-            .text-slate-900,
-            .text-slate-950 { color: #f8fafc !important; }
-            .text-blue-700,
-            .text-blue-800 { color: #00e5ff !important; }
-            .text-rose-800 { color: #ff4fd8 !important; }
-            .text-green-700 { color: #39ff14 !important; }
-            .border-slate-200,
-            .border-slate-300,
-            .border-slate-500 { border-color: #3b3b56 !important; }
-            .border-blue-300,
-            .border-blue-500 { border-color: #00e5ff !important; }
-            input,
-            select,
-            button { color: #f8fafc; }
-            input,
-            select { background-color: #11111a !important; border-color: #3b3b56 !important; }
-            button.bg-white { border-color: #ff4fd8 !important; }
-            .die { background-color: #f8fafc !important; border-color: #00e5ff !important; box-shadow: 0 0 12px rgba(0, 229, 255, 0.22); }
-            .die-dot { background-color: #050509; }
-            .die.held { background-color: #ff4fd8 !important; border-color: #facc15 !important; box-shadow: 0 0 16px rgba(255, 79, 216, 0.45); }
-            .die.held .die-dot { background-color: #050509; }
-            #roll-btn,
-            #game-over-screen button,
-            #setup-screen button[onclick="startGame()"] { background-color: #facc15 !important; color: #050509 !important; }
-            #rolls-left { background-color: #050509 !important; color: #facc15 !important; border: 1px solid #facc15; }
-        }
+        body.dark-mode,
+        body.dark-mode.bg-slate-100 { background-color: #050509 !important; color: #f8fafc; }
+        body.dark-mode #app,
+        body.dark-mode #setup-screen,
+        body.dark-mode #game-screen,
+        body.dark-mode #game-over-screen,
+        body.dark-mode header,
+        body.dark-mode footer { background-color: #050509; color: #f8fafc; }
+        body.dark-mode main { background-color: #050509; }
+        body.dark-mode .bg-white { background-color: #11111a !important; color: #f8fafc; }
+        body.dark-mode .bg-slate-100 { background-color: #161625 !important; }
+        body.dark-mode .bg-slate-200 { background-color: #2a2a3a !important; }
+        body.dark-mode .bg-slate-700,
+        body.dark-mode .bg-slate-950 { background-color: #facc15 !important; color: #050509 !important; }
+        body.dark-mode .bg-blue-50 { background-color: #14102b !important; }
+        body.dark-mode .bg-blue-700 { background-color: #39ff14 !important; color: #050509 !important; }
+        body.dark-mode .bg-rose-100 { background-color: #2d0a22 !important; }
+        body.dark-mode .text-slate-400 { color: #a8b3cf !important; }
+        body.dark-mode .text-slate-500,
+        body.dark-mode .text-slate-600 { color: #c4ff3d !important; }
+        body.dark-mode .text-slate-900,
+        body.dark-mode .text-slate-950 { color: #f8fafc !important; }
+        body.dark-mode .text-blue-700,
+        body.dark-mode .text-blue-800 { color: #00e5ff !important; }
+        body.dark-mode .text-rose-800 { color: #ff4fd8 !important; }
+        body.dark-mode .text-green-700 { color: #39ff14 !important; }
+        body.dark-mode .border-slate-200,
+        body.dark-mode .border-slate-300,
+        body.dark-mode .border-slate-500 { border-color: #3b3b56 !important; }
+        body.dark-mode .border-blue-300,
+        body.dark-mode .border-blue-500 { border-color: #00e5ff !important; }
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode button { color: #f8fafc; }
+        body.dark-mode input,
+        body.dark-mode select { background-color: #11111a !important; border-color: #3b3b56 !important; }
+        body.dark-mode button.bg-white { border-color: #ff4fd8 !important; }
+        body.dark-mode .die { background-color: #f8fafc !important; border-color: #00e5ff !important; box-shadow: 0 0 12px rgba(0, 229, 255, 0.22); }
+        body.dark-mode .die-dot { background-color: #050509; }
+        body.dark-mode .die.held { background-color: #ff4fd8 !important; border-color: #facc15 !important; box-shadow: 0 0 16px rgba(255, 79, 216, 0.45); }
+        body.dark-mode .die.held .die-dot { background-color: #050509; }
+        body.dark-mode #roll-btn,
+        body.dark-mode #game-over-screen button,
+        body.dark-mode #setup-screen button[onclick="startGame()"] { background-color: #facc15 !important; color: #050509 !important; }
+        body.dark-mode #rolls-left { background-color: #050509 !important; color: #facc15 !important; border: 1px solid #facc15; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
@@ -96,6 +94,11 @@
                         <option value="4">4 players</option>
                     </select>
                 </div>
+
+                <label for="dark-mode-toggle" class="flex items-center justify-between gap-3 rounded-lg border border-slate-300 bg-white px-3 py-3">
+                    <span class="text-sm font-semibold">Dark Mode</span>
+                    <input id="dark-mode-toggle" type="checkbox" onchange="setDarkMode(this.checked)" class="h-5 w-5 accent-slate-950">
+                </label>
 
                 <div>
                     <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Seats</div>
@@ -166,6 +169,7 @@
 
     <script>
         const STORAGE_KEY = 'minimalist-yahtzee-state-v2';
+        const THEME_STORAGE_KEY = 'minimalist-yahtzee-dark-mode';
         const MAX_UNDO = 10;
 
         let setupPlayers = [
@@ -180,6 +184,7 @@
         let undoStack = [];
         let aiThinking = false;
         let gameActive = false;
+        let darkMode = localStorage.getItem(THEME_STORAGE_KEY) === 'true';
 
         const CATEGORIES = {
             ones: { id: 'ones', name: 'Ones', section: 'upper', calc: (d) => sumMatch(d, 1) },
@@ -240,6 +245,7 @@
 
         function renderSetup() {
             document.getElementById('player-count').value = String(setupPlayers.length);
+            document.getElementById('dark-mode-toggle').checked = darkMode;
             document.getElementById('player-config').innerHTML = setupPlayers.map((player, i) => `
                 <div class="grid grid-cols-[1fr_96px] gap-2">
                     <input value="${escapeHtml(player.name)}" oninput="updateSetupName(${i}, this.value)" class="min-w-0 rounded-lg border border-slate-300 px-3 py-3 text-base" aria-label="Player ${i + 1} name">
@@ -250,6 +256,17 @@
                 </div>
             `).join('');
             document.getElementById('continue-btn').classList.toggle('hidden', !hasSavedGame());
+        }
+
+        function setDarkMode(enabled) {
+            darkMode = enabled;
+            localStorage.setItem(THEME_STORAGE_KEY, String(darkMode));
+            applyTheme();
+            renderSetup();
+        }
+
+        function applyTheme() {
+            document.body.classList.toggle('dark-mode', darkMode);
         }
 
         function startGame() {
@@ -646,6 +663,7 @@
                 .replace(/'/g, '&#039;');
         }
 
+        applyTheme();
         renderSetup();
     </script>
 </body>
