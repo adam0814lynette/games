@@ -6,11 +6,80 @@
     <title>Minimalist Yahtzee</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; }
-        .die-dot { background-color: #0f172a; border-radius: 50%; width: 8px; height: 8px; }
-        .die { transition: transform 0.2s, background-color 0.2s, border-color 0.2s; }
-        .die.held { background-color: #dbeafe; border: 2px solid #2563eb; transform: translateY(4px); }
-        .die.rolling { animation: shake 0.3s infinite; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; background: #d7dfd3; }
+        #app { background:
+            radial-gradient(circle at top left, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0) 34%),
+            linear-gradient(180deg, #fffdf7 0%, #f5f1e8 100%);
+        }
+        .table-surface {
+            background:
+                radial-gradient(circle at 16% 12%, rgba(255, 255, 255, 0.42), transparent 18%),
+                radial-gradient(circle at 82% 0%, rgba(191, 167, 108, 0.24), transparent 24%),
+                linear-gradient(145deg, #fffaf0 0%, #edf2e9 58%, #d9e4d6 100%);
+            position: relative;
+            isolation: isolate;
+        }
+        .table-surface::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            background-image:
+                linear-gradient(rgba(30, 64, 49, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 64, 49, 0.04) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,0.75), rgba(0,0,0,0.1) 62%, transparent);
+        }
+        .title-card {
+            background: rgba(255, 253, 247, 0.72);
+            border: 1px solid rgba(81, 108, 88, 0.18);
+            box-shadow: 0 20px 45px rgba(28, 50, 38, 0.12);
+            backdrop-filter: blur(12px);
+        }
+        .title-mark {
+            background: linear-gradient(180deg, #172019 0%, #314936 100%);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 12px 30px rgba(29, 49, 37, 0.16);
+        }
+        .title-die {
+            background:
+                radial-gradient(circle at 30% 24%, rgba(255,255,255,0.95), rgba(255,255,255,0) 32%),
+                linear-gradient(145deg, #ffffff 0%, #f7f1e4 58%, #d5c8a8 100%);
+            border: 1px solid rgba(58, 66, 54, 0.18);
+            box-shadow: 0 13px 22px rgba(40, 50, 36, 0.18), inset 0 -6px 12px rgba(88, 70, 42, 0.08);
+        }
+        .control-panel {
+            background: rgba(255, 253, 247, 0.86);
+            border: 1px solid rgba(81, 108, 88, 0.16);
+            box-shadow: 0 16px 32px rgba(46, 66, 50, 0.10);
+            backdrop-filter: blur(10px);
+        }
+        .primary-action {
+            background: linear-gradient(135deg, #111827 0%, #263d2f 100%);
+            box-shadow: 0 12px 24px rgba(17, 24, 39, 0.22), inset 0 1px 0 rgba(255,255,255,0.18);
+        }
+        .secondary-action {
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 5px 14px rgba(30, 41, 59, 0.06);
+        }
+        .score-row { box-shadow: inset 0 1px 0 rgba(255,255,255,0.54); }
+        .dice-tray {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.92), rgba(250,247,239,0.98)),
+                linear-gradient(90deg, rgba(38, 61, 47, 0.06), transparent, rgba(181, 153, 86, 0.08));
+        }
+        .die-dot { background-color: #0f172a; border-radius: 50%; width: 8px; height: 8px; box-shadow: inset 0 1px 1px rgba(255,255,255,0.26); }
+        .die {
+            background:
+                radial-gradient(circle at 30% 24%, rgba(255,255,255,0.95), rgba(255,255,255,0) 32%),
+                linear-gradient(145deg, #ffffff 0%, #f8f4eb 54%, #ddd4bd 100%);
+            border-color: rgba(71, 85, 105, 0.28);
+            box-shadow: 0 8px 15px rgba(15, 23, 42, 0.13), inset 0 -5px 10px rgba(96, 77, 48, 0.08);
+            transition: transform 0.2s, background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .die.held { background-color: #e5efe3; border: 2px solid #446a4f; transform: translateY(4px); box-shadow: 0 3px 8px rgba(20, 83, 45, 0.22), inset 0 0 0 2px rgba(255,255,255,0.62); }
+        .die.rolling { animation: shake 0.28s infinite; }
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             25% { transform: translate(-1px, -2px) rotate(-3deg); }
@@ -35,6 +104,13 @@
         body.dark-mode .bg-blue-50 { background-color: #14102b !important; }
         body.dark-mode .bg-blue-700 { background-color: #39ff14 !important; color: #050509 !important; }
         body.dark-mode .bg-rose-100 { background-color: #2d0a22 !important; }
+        body.dark-mode .table-surface,
+        body.dark-mode .control-panel,
+        body.dark-mode .title-card,
+        body.dark-mode .dice-tray { background: #050509 !important; border-color: #3b3b56 !important; box-shadow: none; }
+        body.dark-mode .table-surface::before { display: none; }
+        body.dark-mode .title-mark { background: none; color: #f8fafc; text-shadow: 0 0 18px rgba(0, 229, 255, 0.42); }
+        body.dark-mode .title-die { background: #f8fafc !important; border-color: #00e5ff !important; box-shadow: 0 0 14px rgba(0, 229, 255, 0.35); }
         body.dark-mode .text-slate-400 { color: #a8b3cf !important; }
         body.dark-mode .text-slate-500,
         body.dark-mode .text-slate-600 { color: #c4ff3d !important; }
@@ -70,18 +146,44 @@
 
     <div id="app" class="w-full max-w-md h-full flex flex-col bg-white shadow-xl relative">
 
-        <div id="setup-screen" class="flex-1 flex flex-col p-5 overflow-y-auto">
-            <div class="py-6">
-                <h1 class="text-4xl font-light tracking-widest uppercase">Yahtzee</h1>
-                <p class="mt-2 text-sm text-slate-500">Set local pass-and-play seats or add AI players.</p>
+        <div id="setup-screen" class="table-surface flex-1 flex flex-col p-5 overflow-y-auto">
+            <div class="title-card rounded-lg px-5 py-6 mt-1 mb-5">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-[0.28em]">Classic Dice</p>
+                        <h1 class="title-mark text-5xl font-black tracking-wide uppercase leading-none mt-2">Yahtzee</h1>
+                        <p class="mt-3 text-sm leading-5 text-slate-600">Classic scoring with a clean table presence.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 shrink-0 pt-1" aria-hidden="true">
+                        <div class="title-die w-11 h-11 rounded-lg rotate-[-8deg] flex items-center justify-center">
+                            <div class="grid grid-cols-3 grid-rows-3 gap-0.5 w-full h-full p-1.5 place-items-center">
+                                <div class="die-dot col-start-1 row-start-1"></div>
+                                <div class="die-dot col-start-3 row-start-1"></div>
+                                <div class="die-dot col-start-2 row-start-2"></div>
+                                <div class="die-dot col-start-1 row-start-3"></div>
+                                <div class="die-dot col-start-3 row-start-3"></div>
+                            </div>
+                        </div>
+                        <div class="title-die w-11 h-11 rounded-lg rotate-[7deg] flex items-center justify-center mt-3">
+                            <div class="grid grid-cols-3 grid-rows-3 gap-0.5 w-full h-full p-1.5 place-items-center">
+                                <div class="die-dot col-start-1 row-start-1"></div>
+                                <div class="die-dot col-start-3 row-start-1"></div>
+                                <div class="die-dot col-start-1 row-start-2"></div>
+                                <div class="die-dot col-start-3 row-start-2"></div>
+                                <div class="die-dot col-start-1 row-start-3"></div>
+                                <div class="die-dot col-start-3 row-start-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="space-y-5">
+            <div class="control-panel rounded-lg p-4 space-y-5">
                 <div>
                     <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Preset</div>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="applyPreset('local')" class="py-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold active:scale-95">Pass and Play</button>
-                        <button onclick="applyPreset('ai')" class="py-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold active:scale-95">Vs AI</button>
+                        <button onclick="applyPreset('local')" class="secondary-action py-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold active:scale-95">Pass and Play</button>
+                        <button onclick="applyPreset('ai')" class="secondary-action py-3 rounded-lg border border-slate-300 bg-white text-sm font-semibold active:scale-95">Vs AI</button>
                     </div>
                 </div>
 
@@ -95,7 +197,7 @@
                     </select>
                 </div>
 
-                <label for="dark-mode-toggle" class="flex items-center justify-between gap-3 rounded-lg border border-slate-300 bg-white px-3 py-3">
+                <label for="dark-mode-toggle" class="secondary-action flex items-center justify-between gap-3 rounded-lg border border-slate-300 bg-white px-3 py-3">
                     <span class="text-sm font-semibold">Dark Mode</span>
                     <input id="dark-mode-toggle" type="checkbox" onchange="setDarkMode(this.checked)" class="h-5 w-5 accent-slate-950">
                 </label>
@@ -108,7 +210,7 @@
 
             <div class="mt-auto pt-6 space-y-3">
                 <button id="continue-btn" onclick="loadSavedGame()" class="hidden w-full py-3 rounded-lg border border-blue-300 bg-blue-50 text-blue-800 font-semibold active:scale-95">Continue Saved Game</button>
-                <button onclick="startGame()" class="w-full py-4 rounded-lg bg-slate-950 text-white font-semibold active:scale-95 shadow-md">Start Game</button>
+                <button onclick="startGame()" class="primary-action w-full py-4 rounded-lg bg-slate-950 text-white font-semibold active:scale-95 shadow-md">Start Game</button>
             </div>
         </div>
 
@@ -148,9 +250,9 @@
                 </div>
             </main>
 
-            <footer class="w-full bg-white border-t border-slate-200 p-2 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] shrink-0 z-20">
+            <footer class="dice-tray w-full bg-white border-t border-slate-200 p-2 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] shrink-0 z-20">
                 <div id="dice-container" class="flex justify-between mb-2 px-1"></div>
-                <button id="roll-btn" onclick="rollDice()" class="w-full py-3 rounded-lg bg-slate-950 text-white font-semibold active:scale-95 shadow-md flex items-center justify-center disabled:opacity-50 disabled:active:scale-100">
+                <button id="roll-btn" onclick="rollDice()" class="primary-action w-full py-3 rounded-lg bg-slate-950 text-white font-semibold active:scale-95 shadow-md flex items-center justify-center disabled:opacity-50 disabled:active:scale-100">
                     <span id="roll-text">Roll Dice</span>
                     <span id="rolls-left" class="bg-slate-700 text-xs px-2 py-1 rounded-md ml-2">3 Left</span>
                 </button>
@@ -248,8 +350,8 @@
             document.getElementById('dark-mode-toggle').checked = darkMode;
             document.getElementById('player-config').innerHTML = setupPlayers.map((player, i) => `
                 <div class="grid grid-cols-[1fr_96px] gap-2">
-                    <input value="${escapeHtml(player.name)}" oninput="updateSetupName(${i}, this.value)" class="min-w-0 rounded-lg border border-slate-300 px-3 py-3 text-base" aria-label="Player ${i + 1} name">
-                    <select onchange="updateSetupType(${i}, this.value)" class="rounded-lg border border-slate-300 bg-white px-2 py-3 text-sm font-semibold" aria-label="Player ${i + 1} type">
+                    <input value="${escapeHtml(player.name)}" oninput="updateSetupName(${i}, this.value)" class="secondary-action min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-3 text-base" aria-label="Player ${i + 1} name">
+                    <select onchange="updateSetupType(${i}, this.value)" class="secondary-action rounded-lg border border-slate-300 bg-white px-2 py-3 text-sm font-semibold" aria-label="Player ${i + 1} type">
                         <option value="human" ${player.type === 'human' ? 'selected' : ''}>Local</option>
                         <option value="ai" ${player.type === 'ai' ? 'selected' : ''}>AI</option>
                     </select>
@@ -629,7 +731,7 @@
                         : 'bg-white border-slate-200 text-slate-400');
 
                 return `
-                    <div onclick="scoreCategory('${cat.id}')" class="px-2 py-1.5 min-h-8 rounded-lg border flex justify-between items-center gap-1 transition ${rowClasses}">
+                    <div onclick="scoreCategory('${cat.id}')" class="score-row px-2 py-1.5 min-h-8 rounded-lg border flex justify-between items-center gap-1 transition ${rowClasses}">
                         <span class="text-xs font-semibold leading-tight truncate">${cat.name}</span>
                         <span class="min-w-7 text-center px-1.5 py-0.5 rounded-md text-xs font-bold ${scoreClasses}">${score}</span>
                     </div>
